@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#4cd7f6",
+                        "surface-dim": "#131318",
+                        "surface-container-lowest": "#0e0e13",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "outline": "#988d9f",
+                        "secondary-container": "#03b5d3",
+                        "primary-fixed-dim": "#ddb7ff",
+                        "primary-container": "#b76dff",
+                        "surface-tint": "#ddb7ff",
+                        "on-surface": "#e4e1e9",
+                        "secondary-fixed": "#acedff",
+                        "inverse-on-surface": "#303036",
+                        "surface-variant": "#35343a",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#f0dbff",
+                        "surface-container-high": "#2a292f",
+                        "surface-container-highest": "#35343a",
+                        "on-tertiary-container": "#00311f",
+                        "on-primary-fixed-variant": "#6900b3",
+                        "on-secondary-fixed": "#001f26",
+                        "on-background": "#e4e1e9",
+                        "background": "#131318",
+                        "on-surface-variant": "#cfc2d6",
+                        "on-primary": "#490080",
+                        "tertiary-container": "#00a572",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#003824",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "primary": "#ddb7ff",
+                        "on-primary-fixed": "#2c0051",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-secondary-container": "#00424e",
+                        "surface": "#131318",
+                        "inverse-primary": "#842bd2",
+                        "tertiary": "#4edea3",
+                        "on-tertiary-fixed": "#002113",
+                        "on-secondary": "#003640",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-primary-container": "#400071",
+                        "surface-bright": "#39383e",
+                        "inverse-surface": "#e4e1e9",
+                        "on-error": "#690005",
+                        "error": "#ffb4ab",
+                        "outline-variant": "#4d4354",
+                        "surface-container": "#1f1f25",
+                        "surface-container-low": "#1b1b20"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .ghost-border {
+            border: 1px solid rgba(77, 67, 84, 0.2);
+        }
+        .input-glow:focus {
+            outline: none;
+            border-color: #4cd7f6;
+            box-shadow: 0 0 15px rgba(76, 215, 246, 0.3);
+        }
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: currentColor;
+            margin-top: -7px;
+            box-shadow: 0 0 10px currentColor;
+            cursor: pointer;
+        }
+        .pulsing-red {
+            box-shadow: 0 0 20px rgba(255, 180, 171, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full h-[70px] z-50 bg-white/5 dark:bg-[#131318]/50 backdrop-blur-lg border-b border-white/10 dark:border-[#4d4354]/20 shadow-[0_4px_20px_rgba(168,85,247,0.1)]">
+<div class="flex justify-between items-center px-8 w-full h-full mx-auto max-w-[1440px]">
+<div class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#a855f7] to-[#4cd7f6] font-headline tracking-tight">
+                TRUE COST
+            </div>
+<div class="hidden md:flex items-center gap-8 font-label tracking-tight text-sm font-medium">
+<a class="text-white/70 hover:text-white transition-colors" href="#">Dashboard</a>
+<a class="text-[#4cd7f6] border-b-2 border-[#4cd7f6] pb-1" href="#">Calculator</a>
+<a class="text-white/70 hover:text-white transition-colors" href="#">X-Ray</a>
+<a class="text-white/70 hover:text-white transition-colors" href="#">Compare</a>
+<a class="text-white/70 hover:text-white transition-colors" href="#">About</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2 rounded-xl text-sm font-label font-bold shadow-[0_0_15px_rgba(221,183,255,0.2)] hover:scale-[0.98] transition-transform">
+                    Generate Report
+                </button>
+<span class="material-symbols-outlined text-white/70 cursor-pointer hover:text-white transition-all">account_circle</span>
+</div>
+</div>
+</nav>
+<main class="pt-[70px] min-h-screen w-full max-w-[1440px] mx-auto flex flex-col md:flex-row">
+<!-- Left Side (60%) -->
+<section class="w-full md:w-[60%] p-8 md:p-12 space-y-12">
+<header>
+<h1 class="text-5xl md:text-6xl font-headline font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-br from-primary via-primary-container to-secondary">
+                    Calculate Your<br/>True Cost
+                </h1>
+<p class="mt-4 text-on-surface-variant font-body max-w-lg">
+                    Unveil the hidden layers of your financial commitments with our high-precision luminescent ledger.
+                </p>
+</header>
+<div class="space-y-10">
+<!-- Sliders -->
+<div class="space-y-8">
+<div class="space-y-4">
+<div class="flex justify-between items-center font-label">
+<span class="text-on-surface/80 text-sm">Loan Amount</span>
+<span class="text-primary font-bold text-lg">$250,000</span>
+</div>
+<input class="w-full text-primary" max="1000000" min="1000" type="range" value="250000"/>
+<div class="flex justify-between text-[10px] text-outline font-label uppercase tracking-widest opacity-50">
+<span>$1k</span>
+<span>$1M</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center font-label">
+<span class="text-on-surface/80 text-sm">Interest Rate</span>
+<span class="text-secondary font-bold text-lg">8.5%</span>
+</div>
+<input class="w-full text-secondary" max="36" min="1" step="0.1" type="range" value="8.5"/>
+<div class="flex justify-between text-[10px] text-outline font-label uppercase tracking-widest opacity-50">
+<span>1%</span>
+<span>36%</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center font-label">
+<span class="text-on-surface/80 text-sm">Tenure (Months)</span>
+<span class="text-secondary-container font-bold text-lg">120 mo</span>
+</div>
+<input class="w-full text-secondary-container" max="360" min="6" type="range" value="120"/>
+<div class="flex justify-between text-[10px] text-outline font-label uppercase tracking-widest opacity-50">
+<span>6 Mo</span>
+<span>360 Mo</span>
+</div>
+</div>
+</div>
+<!-- Toggle -->
+<div class="flex items-center gap-4 glass-panel p-4 rounded-xl ghost-border w-fit">
+<span class="font-label text-sm text-on-surface/80">Include Processing Fee</span>
+<button class="relative w-12 h-6 bg-surface-container-highest rounded-full transition-colors focus:ring-2 ring-secondary/20">
+<div class="absolute left-1 top-1 w-4 h-4 bg-secondary rounded-full transform translate-x-6"></div>
+</button>
+</div>
+<!-- Breakdown Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="glass-panel p-6 rounded-xl ghost-border flex flex-col justify-between h-32 relative overflow-hidden">
+<div class="text-[10px] font-label text-outline uppercase tracking-widest">Monthly EMI</div>
+<div class="text-2xl font-headline font-bold text-white">$3,101.45</div>
+<div class="absolute top-0 right-0 p-2 opacity-20">
+<span class="material-symbols-outlined text-4xl">payments</span>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-xl border border-error/20 flex flex-col justify-between h-32 relative overflow-hidden pulsing-red">
+<div class="text-[10px] font-label text-error/80 uppercase tracking-widest">Total Interest</div>
+<div class="text-2xl font-headline font-bold text-error">$122,174.00</div>
+<div class="absolute top-0 right-0 p-2 opacity-20">
+<span class="material-symbols-outlined text-4xl">warning</span>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-xl border border-primary/30 flex flex-col justify-between h-32 relative overflow-hidden shadow-[0_0_30px_rgba(221,183,255,0.15)]">
+<div class="text-[10px] font-label text-primary uppercase tracking-widest">Total Payable</div>
+<div class="text-2xl font-headline font-bold text-white">$372,174.00</div>
+<div class="absolute top-0 right-0 p-2 opacity-20">
+<span class="material-symbols-outlined text-4xl text-primary">auto_graph</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Side (40%) -->
+<section class="w-full md:w-[40%] bg-surface-container-low p-8 md:p-12 flex flex-col">
+<div class="flex-1 flex flex-col">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-headline text-xl font-medium">Cost Over Time</h3>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-[10px] font-label text-outline uppercase tracking-widest">Principal</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-[10px] font-label text-outline uppercase tracking-widest">Interest</span>
+</div>
+</div>
+</div>
+<!-- Live Visualization (Mock Graph) -->
+<div class="flex-1 relative glass-panel rounded-2xl ghost-border p-6 flex items-end justify-between overflow-hidden">
+<!-- Background Grid -->
+<div class="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-[0.05]">
+<div class="border-r border-b border-white"></div>
+<div class="border-r border-b border-white"></div>
+<div class="border-r border-b border-white"></div>
+<div class="border-r border-b border-white"></div>
+<div class="border-r border-b border-white"></div>
+<div class="border-b border-white"></div>
+<!-- ... repeated as needed -->
+</div>
+<!-- Graph Paths (SVG) -->
+<svg class="absolute inset-0 w-full h-full p-8 overflow-visible" preserveaspectratio="none" viewbox="0 0 100 100">
+<!-- Principal Line -->
+<path d="M0 100 L20 80 L40 65 L60 40 L80 20 L100 0" fill="none" opacity="0.3" stroke="#4cd7f6" stroke-dasharray="1 1" stroke-linecap="round" stroke-width="2"></path>
+<!-- Total Cost Line (Luminous) -->
+<path class="drop-shadow-[0_0_10px_rgba(76,215,246,0.5)]" d="M0 100 Q 25 90, 50 60 T 100 10" fill="none" stroke="url(#cyan-gradient)" stroke-linecap="round" stroke-width="4"></path>
+<!-- "Reality Shock" Warning Line (Hidden by default, shown by logic) -->
+<line opacity="0.8" stroke="#ffb4ab" stroke-dasharray="4 4" stroke-width="1" x1="0" x2="100" y1="40" y2="40"></line>
+<defs>
+<lineargradient id="cyan-gradient" x1="0%" x2="100%" y1="100%" y2="0%">
+<stop offset="0%" stop-color="#4cd7f6"></stop>
+<stop offset="100%" stop-color="#ddb7ff"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Axes labels -->
+<div class="absolute bottom-2 left-8 text-[8px] font-label text-outline uppercase">Start</div>
+<div class="absolute bottom-2 right-8 text-[8px] font-label text-outline uppercase">End of Tenure</div>
+</div>
+<!-- Reality Shock Toggle -->
+<div class="mt-12 p-8 glass-panel rounded-2xl border border-error/30 bg-error/5 flex items-center justify-between">
+<div class="space-y-1">
+<div class="font-headline font-bold text-error tracking-tight text-lg">Reality Shock</div>
+<p class="text-xs text-on-surface-variant max-w-[200px]">Simulate impact of market volatility and late payment penalties.</p>
+</div>
+<div class="flex flex-col items-center gap-2">
+<button class="w-16 h-8 bg-error/20 rounded-full relative flex items-center px-1">
+<div class="w-6 h-6 bg-error rounded-full shadow-[0_0_15px_#ffb4ab] translate-x-8"></div>
+</button>
+<span class="text-[10px] font-label text-error font-bold tracking-widest uppercase">Active</span>
+</div>
+</div>
+<!-- Late Payment Warning Line Overlay Info -->
+<div class="mt-4 flex items-start gap-3 text-error px-2">
+<span class="material-symbols-outlined text-sm">error</span>
+<span class="text-[10px] font-label leading-tight">CRITICAL: 1.5% APY surcharge applied due to projected delinquency zones at year 4. Total interest risk: +$14,200.</span>
+</div>
+</div>
+<!-- Footer Meta -->
+<div class="mt-auto pt-12 flex justify-between items-center opacity-40 grayscale">
+<img alt="" class="h-6 object-contain" data-alt="minimalist fintech partner logo in white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT09KeuBAsWSOJ0Vl3b0oVKMg9PH4JFt4RY67fLV4cCEpRylO_l5w8oUJzvRan9f6OzDRRvLA8MhPdr44CrdSP95ccVFwRQNminDtdMMWXolSivUZ2MMTaCOTxzGIBlsgyvaxy5M9imhhnQ1xjyTt2xOl4PWC-k9CJQExR68Vq4oHBFS1BwNTcjDa7Bna1YMSoilmRv2EGIBIilt9D0y2-jK3yLHSYfx3ZtgQ0xRFxQLdC2qzjZFjs9B6StGMgy1IHv4-nHL13Cdhj"/>
+<span class="text-[10px] font-label uppercase tracking-widest">Secure Ledger Verified</span>
+</div>
+</section>
+</main>
+<!-- Bottom Contextual Info -->
+<div class="fixed bottom-8 left-8 hidden lg:flex items-center gap-6 z-40">
+<div class="glass-panel px-4 py-2 rounded-full ghost-border flex items-center gap-3">
+<div class="w-2 h-2 bg-tertiary rounded-full animate-pulse"></div>
+<span class="text-[10px] font-label uppercase tracking-widest text-on-surface/60">Live Market Index: +0.42%</span>
+</div>
+<div class="glass-panel px-4 py-2 rounded-full ghost-border flex items-center gap-3">
+<span class="material-symbols-outlined text-sm text-secondary">verified_user</span>
+<span class="text-[10px] font-label uppercase tracking-widest text-on-surface/60">FCA Regulated Environment</span>
+</div>
+</div>
+</body></html>

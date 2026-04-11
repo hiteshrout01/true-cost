@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TRUE COST | Comparison Engine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#4cd7f6",
+                    "accent-blue": "#3b82f6",
+                    "surface-dim": "#131318",
+                    "surface-container-lowest": "#0e0e13",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "outline": "#988d9f",
+                    "secondary-container": "#03b5d3",
+                    "primary-fixed-dim": "#ddb7ff",
+                    "primary-container": "#b76dff",
+                    "surface-tint": "#ddb7ff",
+                    "on-surface": "#e4e1e9",
+                    "secondary-fixed": "#acedff",
+                    "inverse-on-surface": "#303036",
+                    "surface-variant": "#35343a",
+                    "error-container": "#93000a",
+                    "primary-fixed": "#f0dbff",
+                    "surface-container-high": "#2a292f",
+                    "surface-container-highest": "#35343a",
+                    "on-tertiary-container": "#00311f",
+                    "on-primary-fixed-variant": "#6900b3",
+                    "on-secondary-fixed": "#001f26",
+                    "on-background": "#e4e1e9",
+                    "background": "#131318",
+                    "on-surface-variant": "#cfc2d6",
+                    "on-primary": "#490080",
+                    "tertiary-container": "#00a572",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary": "#003824",
+                    "secondary-fixed-dim": "#4cd7f6",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "primary": "#ddb7ff",
+                    "on-primary-fixed": "#2c0051",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-secondary-container": "#00424e",
+                    "surface": "#131318",
+                    "inverse-primary": "#842bd2",
+                    "tertiary": "#4edea3",
+                    "on-tertiary-fixed": "#002113",
+                    "on-secondary": "#003640",
+                    "on-secondary-fixed-variant": "#004e5c",
+                    "on-primary-container": "#400071",
+                    "surface-bright": "#39383e",
+                    "inverse-surface": "#e4e1e9",
+                    "on-error": "#690005",
+                    "error": "#ffb4ab",
+                    "outline-variant": "#4d4354",
+                    "surface-container": "#1f1f25",
+                    "surface-container-low": "#1b1b20"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Manrope"],
+                    "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #131318; color: #e4e1e9; }
+        .font-headline { font-family: 'Space Grotesk', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .ghost-border { border: 1px solid rgba(77, 67, 84, 0.2); }
+        .neon-glow-purple { box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); }
+        .neon-glow-cyan { box-shadow: 0 0 20px rgba(76, 215, 246, 0.15); }
+        .neon-glow-blue { box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-20">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full h-[70px] z-50 bg-white/5 dark:bg-[#131318]/50 backdrop-blur-lg border-b border-white/10 dark:border-[#4d4354]/20 shadow-[0_4px_20px_rgba(168,85,247,0.1)] flex justify-between items-center px-8 w-full mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#a855f7] to-[#4cd7f6] font-headline tracking-tight">TRUE COST</span>
+<div class="hidden md:flex gap-6">
+<a class="font-headline tracking-tight text-sm font-medium text-white/70 hover:text-white transition-colors" href="#">Dashboard</a>
+<a class="font-headline tracking-tight text-sm font-medium text-white/70 hover:text-white transition-colors" href="#">Calculator</a>
+<a class="font-headline tracking-tight text-sm font-medium text-white/70 hover:text-white transition-colors" href="#">X-Ray</a>
+<a class="font-headline tracking-tight text-sm font-medium text-[#4cd7f6] border-b-2 border-[#4cd7f6] pb-1" href="#">Compare</a>
+<a class="font-headline tracking-tight text-sm font-medium text-white/70 hover:text-white transition-colors" href="#">About</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-5 py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-headline font-bold text-sm hover:shadow-[0_0_15px_rgba(221,183,255,0.4)] transition-all duration-300">
+            Generate Report
+        </button>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer text-2xl" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+<main class="pt-28 px-4 md:px-8 max-w-[1400px] mx-auto">
+<!-- Title Section -->
+<header class="mb-12">
+<h1 class="text-display-lg font-headline font-bold text-5xl tracking-tight mb-2">Compare Financial Products</h1>
+<p class="text-on-surface-variant max-w-2xl font-body">Input your loan, credit, or mortgage terms to visualize the long-term impact. Our engine calculates the hidden fees that standard bank tools ignore.</p>
+</header>
+<!-- Comparison Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+<!-- Option A (Purple) -->
+<div class="glass-card rounded-2xl p-6 border-primary/20 neon-glow-purple relative overflow-hidden flex flex-col h-full">
+<div class="absolute top-0 right-0 p-4">
+<span class="label-sm font-headline text-primary opacity-50">OPTION A</span>
+</div>
+<h3 class="text-title-md font-headline font-semibold mb-6 text-primary">Standard Mortgage</h3>
+<div class="space-y-6 flex-grow">
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">LOAN AMOUNT</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-xl focus:border-primary focus:ring-0 outline-none transition-all" type="text" value="$450,000"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">INTEREST RATE</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-lg focus:border-primary outline-none" type="text" value="6.5%"/>
+</div>
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">TENURE (YRS)</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-lg focus:border-primary outline-none" type="text" value="30"/>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant/20 space-y-4">
+<div class="flex justify-between items-end">
+<span class="text-label-md text-on-surface-variant font-headline">MONTHLY EMI</span>
+<span class="text-2xl font-headline font-bold">$2,844</span>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-label-md text-on-surface-variant font-headline">TOTAL INTEREST</span>
+<span class="text-xl font-headline font-semibold text-primary/80">$573,921</span>
+</div>
+<div class="flex justify-between items-end p-4 bg-surface-container-high rounded-xl">
+<span class="text-label-md text-on-surface font-headline">TOTAL COST</span>
+<span class="text-3xl font-headline font-black">$1,023,921</span>
+</div>
+</div>
+</div>
+</div>
+<!-- VS Divider Overlay 1 (A vs B) -->
+<div class="hidden lg:flex absolute left-[33.33%] top-[40%] -translate-x-1/2 -translate-y-1/2 z-10 flex-col items-center gap-2 pointer-events-none">
+<div class="w-px h-32 bg-gradient-to-b from-transparent via-outline-variant to-transparent opacity-30"></div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center shadow-lg">
+<span class="font-headline font-black text-xs italic text-white/50 tracking-widest">VS</span>
+</div>
+<div class="w-px h-32 bg-gradient-to-b from-transparent via-outline-variant to-transparent opacity-30"></div>
+</div>
+<!-- Option B (Cyan) -->
+<div class="glass-card rounded-2xl p-6 border-secondary/20 neon-glow-cyan relative overflow-hidden flex flex-col h-full ring-2 ring-secondary/40">
+<!-- BETTER DEAL BADGE -->
+<div class="absolute top-4 left-4 z-20">
+<div class="bg-secondary-container/20 border border-secondary text-secondary font-headline font-black text-xs tracking-tighter px-3 py-1 rounded-full flex items-center gap-1 shadow-[0_0_15px_rgba(76,215,246,0.3)]">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                    BEST VALUE
+                </div>
+</div>
+<div class="absolute top-0 right-0 p-4">
+<span class="label-sm font-headline text-secondary opacity-50">OPTION B</span>
+</div>
+<h3 class="text-title-md font-headline font-semibold mb-6 text-secondary">Flexi-Premium Loan</h3>
+<div class="space-y-6 flex-grow">
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">LOAN AMOUNT</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-xl focus:border-secondary focus:ring-0 outline-none transition-all" type="text" value="$450,000"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">INTEREST RATE</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-lg focus:border-secondary outline-none" type="text" value="5.8%"/>
+</div>
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">TENURE (YRS)</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-lg focus:border-secondary outline-none" type="text" value="30"/>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant/20 space-y-4">
+<div class="flex justify-between items-end">
+<span class="text-label-md text-on-surface-variant font-headline">MONTHLY EMI</span>
+<span class="text-2xl font-headline font-bold">$2,640</span>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-label-md text-on-surface-variant font-headline">TOTAL INTEREST</span>
+<span class="text-xl font-headline font-semibold text-secondary/80">$500,432</span>
+</div>
+<div class="flex justify-between items-end p-4 bg-secondary-container/10 rounded-xl border border-secondary/20">
+<span class="text-label-md text-on-surface font-headline">TOTAL COST</span>
+<span class="text-3xl font-headline font-black text-secondary">$950,432</span>
+</div>
+</div>
+</div>
+</div>
+<!-- VS Divider Overlay 2 (B vs C) -->
+<div class="hidden lg:flex absolute left-[66.66%] top-[40%] -translate-x-1/2 -translate-y-1/2 z-10 flex-col items-center gap-2 pointer-events-none">
+<div class="w-px h-32 bg-gradient-to-b from-transparent via-outline-variant to-transparent opacity-30"></div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center shadow-lg">
+<span class="font-headline font-black text-xs italic text-white/50 tracking-widest">VS</span>
+</div>
+<div class="w-px h-32 bg-gradient-to-b from-transparent via-outline-variant to-transparent opacity-30"></div>
+</div>
+<!-- Option C (Electric Blue) -->
+<div class="glass-card rounded-2xl p-6 border-accent-blue/20 neon-glow-blue relative overflow-hidden flex flex-col h-full">
+<div class="absolute top-0 right-0 p-4">
+<span class="label-sm font-headline text-accent-blue opacity-50">OPTION C</span>
+</div>
+<h3 class="text-title-md font-headline font-semibold mb-6 text-accent-blue">Smart-Saver Pro</h3>
+<div class="space-y-6 flex-grow">
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">LOAN AMOUNT</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-xl focus:border-accent-blue focus:ring-0 outline-none transition-all" type="text" value="$450,000"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">INTEREST RATE</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-lg focus:border-accent-blue outline-none" type="text" value="6.1%"/>
+</div>
+<div>
+<label class="block text-label-sm font-headline mb-2 text-on-surface-variant">TENURE (YRS)</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-3 font-headline text-lg focus:border-accent-blue outline-none" type="text" value="30"/>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant/20 space-y-4">
+<div class="flex justify-between items-end">
+<span class="text-label-md text-on-surface-variant font-headline">MONTHLY EMI</span>
+<span class="text-2xl font-headline font-bold">$2,727</span>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-label-md text-on-surface-variant font-headline">TOTAL INTEREST</span>
+<span class="text-xl font-headline font-semibold text-accent-blue/80">$531,720</span>
+</div>
+<div class="flex justify-between items-end p-4 bg-surface-container-high rounded-xl">
+<span class="text-label-md text-on-surface font-headline">TOTAL COST</span>
+<span class="text-3xl font-headline font-black text-accent-blue/80">$981,720</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Dual Graph Overlay Section -->
+<section class="mt-20">
+<h2 class="text-headline-lg font-headline font-bold mb-8 flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="insights">insights</span>
+            Cost Trajectory Analysis
+        </h2>
+<div class="glass-card rounded-2xl p-8 h-[400px] relative overflow-hidden">
+<div class="absolute inset-0 p-10 flex flex-col justify-between">
+<!-- Custom SVG Graph Mockup -->
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 1000 300">
+<!-- Shaded Area (Comparison Range) -->
+<path d="M0,280 Q250,220 500,160 Q750,100 1000,40 L1000,80 Q750,140 500,200 Q250,260 0,280 Z" fill="url(#gradDiff)" opacity="0.15"></path>
+<!-- Purple Line (Option A) -->
+<path d="M0,280 Q250,220 500,160 Q750,100 1000,40" fill="none" stroke="#ddb7ff" stroke-dasharray="1000" stroke-dashoffset="0" stroke-linecap="round" stroke-width="4"></path>
+<!-- Cyan Line (Option B) -->
+<path d="M0,280 Q250,240 500,200 Q750,140 1000,80" fill="none" stroke="#4cd7f6" stroke-linecap="round" stroke-width="4"></path>
+<!-- Blue Line (Option C) -->
+<path d="M0,280 Q250,230 500,180 Q750,120 1000,60" fill="none" stroke="#3b82f6" stroke-dasharray="8 8" stroke-linecap="round" stroke-width="4"></path>
+<!-- Points -->
+<circle cx="1000" cy="40" fill="#ddb7ff" r="6"></circle>
+<circle cx="1000" cy="80" fill="#4cd7f6" r="6"></circle>
+<circle cx="1000" cy="60" fill="#3b82f6" r="6"></circle>
+<defs>
+<lineargradient id="gradDiff" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#4cd7f6;stop-opacity:0.2"></stop>
+<stop offset="100%" style="stop-color:#ddb7ff;stop-opacity:0.5"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Graph Labels -->
+<div class="flex justify-between text-label-sm font-headline text-on-surface-variant pt-4">
+<span>Year 0</span>
+<span>Year 7.5</span>
+<span>Year 15</span>
+<span>Year 22.5</span>
+<span>Year 30</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="absolute bottom-12 right-12 flex flex-col gap-2 bg-black/40 backdrop-blur-md p-4 rounded-xl border border-white/10">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-label-sm font-headline">Option A: High Interest</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<span class="text-label-sm font-headline">Option B: Low Interest</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-accent-blue"></div>
+<span class="text-label-sm font-headline">Option C: Mid Interest</span>
+</div>
+<div class="mt-2 text-tertiary font-headline font-bold text-lg">-$73,489 MAX SAVED</div>
+</div>
+</div>
+</section>
+<!-- Detailed Comparison Table -->
+<section class="mt-20">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+<h2 class="text-headline-lg font-headline font-bold">Deep Dive Analysis</h2>
+<div class="flex gap-2">
+<button class="ghost-border px-4 py-2 rounded-xl text-label-sm font-headline hover:bg-white/5 transition-all">Export CSV</button>
+<button class="ghost-border px-4 py-2 rounded-xl text-label-sm font-headline hover:bg-white/5 transition-all">Print PDF</button>
+</div>
+</div>
+<div class="overflow-x-auto glass-card rounded-2xl">
+<table class="w-full text-left border-collapse min-w-[800px]">
+<thead class="bg-surface-container-high border-b border-outline-variant/20">
+<tr>
+<th class="p-6 font-headline font-semibold text-on-surface-variant">Metric</th>
+<th class="p-6 font-headline font-semibold text-primary">Standard (A)</th>
+<th class="p-6 font-headline font-semibold text-secondary">Flexi (B)</th>
+<th class="p-6 font-headline font-semibold text-accent-blue">Smart (C)</th>
+<th class="p-6 font-headline font-semibold text-on-surface">Variance (B-A)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-white/5 transition-colors">
+<td class="p-6 font-body text-on-surface-variant">Origination Fee</td>
+<td class="p-6 font-headline">$1,200</td>
+<td class="p-6 font-headline bg-tertiary-container/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">$850</td>
+<td class="p-6 font-headline">$1,100</td>
+<td class="p-6 font-headline text-tertiary">-29.1%</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="p-6 font-body text-on-surface-variant">Annual Maintenance</td>
+<td class="p-6 font-headline bg-tertiary-container/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">$0</td>
+<td class="p-6 font-headline">$150</td>
+<td class="p-6 font-headline">$200</td>
+<td class="p-6 font-headline text-error">+$150</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="p-6 font-body text-on-surface-variant">Early Pre-payment</td>
+<td class="p-6 font-headline">2%</td>
+<td class="p-6 font-headline bg-tertiary-container/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">None</td>
+<td class="p-6 font-headline">1%</td>
+<td class="p-6 font-headline text-tertiary">Favorable</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="p-6 font-body text-on-surface-variant">Late Payment Grace</td>
+<td class="p-6 font-headline">5 Days</td>
+<td class="p-6 font-headline bg-tertiary-container/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">15 Days</td>
+<td class="p-6 font-headline">10 Days</td>
+<td class="p-6 font-headline text-tertiary">+10 Days</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="p-6 font-body text-on-surface-variant">Compounding</td>
+<td class="p-6 font-headline">Monthly</td>
+<td class="p-6 font-headline bg-tertiary-container/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">Quarterly</td>
+<td class="p-6 font-headline">Monthly</td>
+<td class="p-6 font-headline text-tertiary">Favorable</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Final Verdict -->
+<section class="mt-20 mb-20 text-center">
+<div class="inline-block relative w-full">
+<div class="absolute inset-0 bg-secondary/10 blur-[100px] rounded-full"></div>
+<div class="relative glass-card border-secondary/40 p-12 rounded-3xl max-w-3xl mx-auto overflow-hidden">
+<!-- Particle-like background accent -->
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-secondary/10 blur-3xl rounded-full"></div>
+<div class="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/10 blur-3xl rounded-full"></div>
+<span class="inline-block px-4 py-1 rounded-full bg-secondary-container text-on-secondary-container font-headline font-bold text-xs mb-6">ENGINE VERDICT</span>
+<h2 class="text-4xl font-headline font-bold mb-4 tracking-tight">Option B is your <span class="text-secondary">Optimal Path</span></h2>
+<p class="text-on-surface-variant font-body mb-8">By choosing Flexi-Premium, you reduce your total debt obligation by <span class="text-white font-bold">$73,489</span> over 30 years, outperforming both Option A and Option C.</p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<button class="px-8 py-4 bg-secondary text-on-secondary font-headline font-bold rounded-xl hover:scale-[0.98] transition-all">Proceed with Option B</button>
+<button class="px-8 py-4 bg-surface-container-highest border border-outline-variant font-headline font-bold rounded-xl hover:bg-surface-bright transition-all">Schedule Advisor Call</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body></html>

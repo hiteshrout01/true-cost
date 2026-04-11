@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#4cd7f6",
+                        "surface-dim": "#131318",
+                        "surface-container-lowest": "#0e0e13",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "outline": "#988d9f",
+                        "secondary-container": "#03b5d3",
+                        "primary-fixed-dim": "#ddb7ff",
+                        "primary-container": "#b76dff",
+                        "surface-tint": "#ddb7ff",
+                        "on-surface": "#e4e1e9",
+                        "secondary-fixed": "#acedff",
+                        "inverse-on-surface": "#303036",
+                        "surface-variant": "#35343a",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#f0dbff",
+                        "surface-container-high": "#2a292f",
+                        "surface-container-highest": "#35343a",
+                        "on-tertiary-container": "#00311f",
+                        "on-primary-fixed-variant": "#6900b3",
+                        "on-secondary-fixed": "#001f26",
+                        "on-background": "#e4e1e9",
+                        "background": "#131318",
+                        "on-surface-variant": "#cfc2d6",
+                        "on-primary": "#490080",
+                        "tertiary-container": "#00a572",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#003824",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "primary": "#ddb7ff",
+                        "on-primary-fixed": "#2c0051",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-secondary-container": "#00424e",
+                        "surface": "#131318",
+                        "inverse-primary": "#842bd2",
+                        "tertiary": "#4edea3",
+                        "on-tertiary-fixed": "#002113",
+                        "on-secondary": "#003640",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-primary-container": "#400071",
+                        "surface-bright": "#39383e",
+                        "inverse-surface": "#e4e1e9",
+                        "on-error": "#690005",
+                        "error": "#ffb4ab",
+                        "outline-variant": "#4d4354",
+                        "surface-container": "#1f1f25",
+                        "surface-container-low": "#1b1b20"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .ghost-border {
+            border: 1px solid rgba(77, 67, 84, 0.2);
+        }
+        .glow-primary:hover {
+            box-shadow: 0 0 25px rgba(183, 109, 255, 0.2);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4d4354; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen">
+<!-- TopNavBar Shell -->
+<nav class="fixed top-0 w-full h-[70px] z-50 bg-white/5 dark:bg-[#131318]/50 backdrop-blur-lg border-b border-white/10 dark:border-[#4d4354]/20 shadow-[0_4px_20px_rgba(168,85,247,0.1)] flex justify-between items-center px-8 w-full mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#a855f7] to-[#4cd7f6] font-headline">TRUE COST</span>
+<div class="hidden md:flex gap-6">
+<a class="text-white/70 hover:text-white transition-colors font-headline tracking-tight text-sm font-medium" href="#">Dashboard</a>
+<a class="text-white/70 hover:text-white transition-colors font-headline tracking-tight text-sm font-medium" href="#">Calculator</a>
+<a class="text-white/70 hover:text-white transition-colors font-headline tracking-tight text-sm font-medium" href="#">X-Ray</a>
+<a class="text-white/70 hover:text-white transition-colors font-headline tracking-tight text-sm font-medium" href="#">Compare</a>
+<a class="text-white/70 hover:text-white transition-colors font-headline tracking-tight text-sm font-medium" href="#">About</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline text-sm font-bold px-5 py-2.5 rounded-xl glow-primary transition-all active:scale-[0.98]">
+                Generate Report
+            </button>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">account_circle</span>
+</div>
+</nav>
+<!-- Main Content Underlay (Blurred Dashboard Representation) -->
+<main class="pt-24 px-8 max-w-7xl mx-auto blur-sm">
+<div class="grid grid-cols-12 gap-6">
+<div class="col-span-8 space-y-6">
+<div class="h-64 surface-container-low rounded-xl"></div>
+<div class="grid grid-cols-2 gap-6">
+<div class="h-40 surface-container-low rounded-xl"></div>
+<div class="h-40 surface-container-low rounded-xl"></div>
+</div>
+</div>
+<div class="col-span-4 h-full surface-container-low rounded-xl"></div>
+</div>
+</main>
+<!-- Report Generator Modal Overlay -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-[#131318]/80 backdrop-blur-md px-4">
+<!-- Modal Card -->
+<div class="glass-panel w-full max-w-[850px] max-h-[921px] rounded-[2rem] overflow-hidden flex flex-col shadow-2xl">
+<!-- Modal Header -->
+<div class="p-8 flex justify-between items-center border-b border-white/10">
+<div>
+<h2 class="text-2xl font-headline font-bold tracking-tight text-white">Report Generator</h2>
+<p class="text-on-surface-variant text-sm mt-1">Configure and preview your custom financial analysis.</p>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-outline">close</span>
+</button>
+</div>
+<div class="flex flex-1 overflow-hidden">
+<!-- Left Sidebar: Configuration -->
+<aside class="w-72 p-8 border-r border-white/5 space-y-8 overflow-y-auto">
+<div class="space-y-4">
+<h3 class="font-headline text-xs font-bold uppercase tracking-widest text-secondary/70">Customization</h3>
+<div class="space-y-4">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-5 h-5 rounded border-outline-variant bg-surface-container-high text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-white transition-colors">Full Breakdown</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-5 h-5 rounded border-outline-variant bg-surface-container-high text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-white transition-colors">Comparison Data</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-5 h-5 rounded border-outline-variant bg-surface-container-high text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-white transition-colors">Risk Analysis</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-5 h-5 rounded border-outline-variant bg-surface-container-high text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-white transition-colors">Recommendations</span>
+</label>
+</div>
+</div>
+<div class="space-y-4 pt-4 border-t border-white/5">
+<h3 class="font-headline text-xs font-bold uppercase tracking-widest text-secondary/70">Timeframe</h3>
+<select class="w-full bg-surface-container-high border-outline-variant rounded-xl text-sm focus:border-secondary focus:ring-secondary transition-all">
+<option>Last 12 Months</option>
+<option>Quarter to Date</option>
+<option>Year to Date</option>
+<option>Custom Range</option>
+</select>
+</div>
+<div class="pt-4 border-t border-white/5">
+<div class="p-4 rounded-xl bg-secondary/5 border border-secondary/10">
+<p class="text-[10px] text-secondary/80 uppercase font-bold tracking-tighter mb-1">PRO Feature</p>
+<p class="text-xs text-white/60 leading-relaxed">Unlock advanced sectoral benchmarks for a deeper comparison.</p>
+</div>
+</div>
+</aside>
+<!-- Right Content: Report Preview -->
+<div class="flex-1 p-8 overflow-y-auto bg-surface-container-lowest/40">
+<div class="space-y-10">
+<!-- Preview Header -->
+<div class="flex justify-between items-start">
+<div>
+<div class="text-[10px] font-headline font-bold text-secondary uppercase tracking-[0.2em] mb-2">Internal Preview</div>
+<h1 class="text-3xl font-headline font-bold tracking-tighter text-white">Q3 Alpha Portfolio Analysis</h1>
+<p class="text-on-surface-variant text-sm mt-1">Generated for: <span class="text-primary">Morgan Henderson</span> • Aug 24, 2024</p>
+</div>
+<div class="p-3 bg-surface-container-high rounded-2xl border border-white/5">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">description</span>
+</div>
+</div>
+<!-- Summary Card (Risk Score) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="md:col-span-2 p-6 rounded-2xl bg-gradient-to-br from-surface-container-high to-surface-container border border-white/5 flex items-center justify-between">
+<div class="space-y-1">
+<h4 class="text-on-surface-variant text-xs font-headline uppercase tracking-wider font-bold">Overall Risk Score</h4>
+<div class="text-5xl font-headline font-bold text-white tracking-tighter">74<span class="text-lg text-secondary">/100</span></div>
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[10px] font-bold">
+<span class="material-symbols-outlined text-xs">trending_down</span>
+                                        LOW RISK
+                                    </div>
+</div>
+<div class="w-24 h-24 relative flex items-center justify-center">
+<svg class="w-full h-full -rotate-90">
+<circle cx="48" cy="48" fill="transparent" r="40" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle>
+<circle cx="48" cy="48" fill="transparent" r="40" stroke="url(#risk-grad)" stroke-dasharray="251.2" stroke-dashoffset="65" stroke-width="8"></circle>
+<defs>
+<lineargradient id="risk-grad" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" style="stop-color:#b76dff"></stop>
+<stop offset="100%" style="stop-color:#4cd7f6"></stop>
+</lineargradient>
+</defs>
+</svg>
+<span class="absolute material-symbols-outlined text-white/40">shield_with_heart</span>
+</div>
+</div>
+<div class="p-6 rounded-2xl border border-white/5 bg-surface-container-high flex flex-col justify-between">
+<h4 class="text-on-surface-variant text-xs font-headline uppercase tracking-wider font-bold">Total Exposure</h4>
+<div>
+<div class="text-2xl font-headline font-bold text-white">$42.8M</div>
+<div class="text-tertiary text-xs">+12.4% vs last period</div>
+</div>
+</div>
+</div>
+<!-- Visual Section (Mini Graphs) -->
+<div class="space-y-4">
+<h4 class="text-on-surface-variant text-xs font-headline uppercase tracking-wider font-bold">Sector Breakdown</h4>
+<div class="grid grid-cols-4 gap-3">
+<div class="p-4 rounded-xl bg-surface-container border border-white/5 flex flex-col gap-3">
+<div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[65%]"></div>
+</div>
+<span class="text-[10px] font-bold text-white/80">FINTECH</span>
+</div>
+<div class="p-4 rounded-xl bg-surface-container border border-white/5 flex flex-col gap-3">
+<div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[40%]"></div>
+</div>
+<span class="text-[10px] font-bold text-white/80">HEALTHCARE</span>
+</div>
+<div class="p-4 rounded-xl bg-surface-container border border-white/5 flex flex-col gap-3">
+<div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[15%]"></div>
+</div>
+<span class="text-[10px] font-bold text-white/80">RETAIL</span>
+</div>
+<div class="p-4 rounded-xl bg-surface-container border border-white/5 flex flex-col gap-3">
+<div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-outline w-[10%]"></div>
+</div>
+<span class="text-[10px] font-bold text-white/80">OTHERS</span>
+</div>
+</div>
+</div>
+<!-- Recommendations (Bullet Points) -->
+<div class="space-y-4">
+<h4 class="text-on-surface-variant text-xs font-headline uppercase tracking-wider font-bold">Key Recommendations</h4>
+<ul class="space-y-4">
+<li class="flex gap-4 p-4 rounded-2xl bg-surface-container-high/40 border border-white/5">
+<div class="w-8 h-8 rounded-full bg-tertiary/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary text-sm">auto_awesome</span>
+</div>
+<div>
+<p class="text-sm font-bold text-white">Optimize liquidity buffer for upcoming quarter</p>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Current cash reserves are 4% below recommended benchmarks for your volatility profile.</p>
+</div>
+</li>
+<li class="flex gap-4 p-4 rounded-2xl bg-surface-container-high/40 border border-white/5">
+<div class="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-secondary text-sm">rebase_edit</span>
+</div>
+<div>
+<p class="text-sm font-bold text-white">Diversify technology sector holdings</p>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Concentration in high-growth SaaS poses a systematic risk if interest rates fluctuate.</p>
+</div>
+</li>
+</ul>
+</div>
+<!-- Data Visual Placeholder -->
+<div class="relative h-48 w-full rounded-2xl overflow-hidden border border-white/5">
+<img class="w-full h-full object-cover opacity-30 grayscale" data-alt="Abstract data visualization with flowing lines and particles representing digital connectivity and financial intelligence in deep blue and purple tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBltP7y4deU_s2FxTsRmnAFLOIN9zhAL-qUFitgMukhOPteZwFDQoG8p2xHR6lQxAedW4gytr2XjzV8jgFtYKFqusxEEo4Knql2wPReib-bvbxz1r6UAiPvYvaiconhDAOU3X71xxXQxKLq9kThusjGj_tzzMZaXzOqH0BscxC4EcLIhCkDhMB5bNQn-B0285BQkNuvlU7dxH7ERlj3f5eRR0MAGRRK2qSY8w8z4Rc43yPQqhR6SwEdATdPHChe2DHh_M_oFppzHWiA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest to-transparent"></div>
+<div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+<div class="text-[10px] font-headline font-bold text-white/40 tracking-[0.3em] uppercase">Projected Performance Matrix</div>
+<div class="flex gap-1 items-end h-12">
+<div class="w-1.5 h-6 bg-primary/30 rounded-t-sm"></div>
+<div class="w-1.5 h-8 bg-primary/40 rounded-t-sm"></div>
+<div class="w-1.5 h-12 bg-primary/60 rounded-t-sm"></div>
+<div class="w-1.5 h-10 bg-secondary rounded-t-sm"></div>
+<div class="w-1.5 h-5 bg-white/10 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-8 border-t border-white/10 flex flex-wrap gap-4 justify-between items-center bg-surface-container">
+<div class="flex flex-wrap gap-3">
+<button class="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-on-primary font-headline text-sm font-bold glow-primary transition-all active:scale-[0.95]">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                        Download PDF
+                    </button>
+<button class="flex items-center gap-2 px-5 py-3 rounded-xl bg-secondary text-on-secondary font-headline text-sm font-bold transition-all hover:bg-secondary/90 active:scale-[0.95]">
+<span class="material-symbols-outlined text-sm">mail</span>
+                        Email Report
+                    </button>
+<button class="flex items-center gap-2 px-5 py-3 rounded-xl glass-panel text-white font-headline text-sm font-bold transition-all hover:bg-white/10 active:scale-[0.95]">
+<span class="material-symbols-outlined text-sm">link</span>
+                        Copy Link
+                    </button>
+</div>
+<button class="text-on-surface-variant hover:text-white text-xs font-bold font-headline uppercase tracking-widest transition-colors">
+                    Discard Draft
+                </button>
+</div>
+</div>
+</div>
+</body></html>
