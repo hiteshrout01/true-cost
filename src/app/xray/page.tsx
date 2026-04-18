@@ -339,9 +339,21 @@ export default function XRayPage() {
       });
 
       clearTimeout(timeoutId);
-      const data = await response.json();
       
-      if (!response.ok) throw new Error(data.error || "Analysis failed.");
+      const textData = await response.text();
+      let data: any;
+      
+      try {
+        data = JSON.parse(textData);
+      } catch (parseErr) {
+        console.error("Critical: Failed to parse API response as JSON.", textData);
+        throw new Error("Invalid response from server. Please try again.");
+      }
+      
+      if (!response.ok) {
+        console.error("API Error Response:", data);
+        throw new Error(data.error || "Analysis failed.");
+      }
 
       setScore(data.score ?? 5.0);
       setClauses(data.clauses ?? []);
@@ -363,7 +375,7 @@ export default function XRayPage() {
       setIsScanning(true);
     } catch (err: any) {
       clearTimeout(timeoutId);
-      console.error(err);
+      console.error("Fetch/Analysis Error:", err);
       if (err.name === 'AbortError') {
         setErrorMsg("Analysis timed out. The server took too long to respond. Please try with a smaller text chunk.");
       } else {

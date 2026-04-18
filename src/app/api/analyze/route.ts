@@ -138,11 +138,13 @@ export async function POST(request: Request) {
           // Validation Layer: Must have clauses and summary
           if (!parsed.summary || !parsed.clauses) {
             console.error("[X-Ray] Missing required top-level fields in chunk result:", raw);
-            throw new Error("Invalid schema: Missing clauses or summary");
+            const error: any = new Error("Invalid schema: Missing clauses or summary");
+            error.raw = raw;
+            throw error;
           }
           // Default metrics if missing
           if (!parsed.metrics) {
-            parsed.metrics = { interest_rate: "...", penalty_apr: "...", fees: [], tenure: "...", loan_amount: "..." };
+            parsed.metrics = { interest_rate: "--", penalty_apr: "--", fees: [], tenure: "--", loan_amount: "--" };
           }
           return parsed;
         } catch (err: any) {
@@ -150,6 +152,7 @@ export async function POST(request: Request) {
             console.warn(`[X-Ray] Malformed response (retry ${retry}): ${err.message}`);
             return fetchAnalysis(false);
           }
+          if (!err.raw) err.raw = raw;
           throw err;
         }
       };
@@ -242,6 +245,9 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error("Critical AI Analysis Error:", error);
-    return NextResponse.json({ error: error.message || "Financial analysis system unavailable." }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || "Financial analysis system unavailable.",
+      raw: error.raw || null
+    }, { status: 500 });
   }
 }
