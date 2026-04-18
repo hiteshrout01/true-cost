@@ -4,12 +4,15 @@ import { NextResponse } from "next/server";
 // Analysis Engine - Force Reload: 2026-04-18T22:45:00
 export async function POST(request: Request) {
   console.log("[X-Ray] POST /api/analyze called");
+  
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    console.error("[X-Ray] OPENROUTER_API_KEY is missing from environment variables");
+    return NextResponse.json({ error: "Server configuration error: Missing API Key" }, { status: 500 });
+  }
+
   let text: string | null = null;
   try {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      throw new Error("OPENROUTER_API_KEY is not configured in .env.local");
-    }
 
     const client = new OpenAI({
       baseURL: "https://openrouter.ai/api/v1",
@@ -185,19 +188,9 @@ export async function POST(request: Request) {
     const chunkResults = results.filter(Boolean);
 
     if (chunkResults.length === 0) {
-      // Return a friendly response even if no data found
-      return NextResponse.json({
-        summary: {
-          overview: "The analysis system was unable to extract financial data from this specific document. Please ensure it is a text-based financial agreement.",
-          risk_level: "Medium",
-          key_facts: ["No specific numbers detected"],
-          key_risks: ["Analysis incomplete due to document format"]
-        },
-        metrics: { interest_rate: "N/A", penalty_apr: "N/A", fees: [], tenure: "N/A", loan_amount: "N/A" },
-        clauses: [],
-        score: 5.0,
-        parsedText: documentText
-      });
+      return NextResponse.json({ 
+        error: "AI Extraction Failed: No significant financial data could be processed from this document. Please ensure the document contains clear financial terms." 
+      }, { status: 422 });
     }
 
     // Restoration: Deduplication & Merging match pre-deployment behavior
@@ -206,10 +199,10 @@ export async function POST(request: Request) {
 
     // Merging of Metrics (Aggregate All)
     const allFees = new Set<string>();
-    let maxInterestRate = "TBD";
-    let maxPenaltyApr = "TBD";
-    let tenure = "TBD";
-    let loanAmount = "TBD";
+    let maxInterestRate = "--";
+    let maxPenaltyApr = "--";
+    let tenure = "--";
+    let loanAmount = "--";
 
     chunkResults.forEach(r => {
       const m = r.metrics || {};
