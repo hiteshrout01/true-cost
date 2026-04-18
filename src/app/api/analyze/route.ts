@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
     const documentText = text;
     const CHUNK_SIZE = 8000; 
-    const chunks: string[] = [];
+    const chunks: { text: string, offset: number }[] = [];
     
     let currentPos = 0;
     while (currentPos < text.length) {
@@ -69,13 +69,14 @@ export async function POST(request: Request) {
       } else {
         endPos = text.length;
       }
-      chunks.push(text.substring(currentPos, endPos));
+      chunks.push({ text: text.substring(currentPos, endPos), offset: currentPos });
       currentPos = endPos;
     }
 
     console.log(`[X-Ray] Starting analysis for ${chunks.length} chunks...`);
 
-    const chunkPromises = chunks.map(async (chunk, index) => {
+    const chunkPromises = chunks.map(async (chunkObj, index) => {
+      const { text: chunk, offset } = chunkObj;
       const isFirstChunk = index === 0;
       
       const fetchAnalysis = async (retry = true): Promise<any> => {
@@ -157,28 +158,19 @@ export async function POST(request: Request) {
         }
       };
 
-      try {
-        const parsed = await fetchAnalysis();
-        if (!parsed) return null;
+      const parsed = await fetchAnalysis();
+      
+      // Adjust indices based on deterministic offset
+      const adjustedClauses = (parsed.clauses || []).map((c: any) => ({
+        ...c,
+        start: typeof c.start === 'number' ? c.start + offset : -1,
+        end: typeof c.end === 'number' ? c.end + offset : -1
+      }));
 
-        const offset = documentText.indexOf(chunk);
-        
-        // Adjust indices
-        const adjustedClauses = (parsed.clauses || []).map((c: any) => ({
-          ...c,
-          start: typeof c.start === 'number' ? c.start + offset : -1,
-          end: typeof c.end === 'number' ? c.end + offset : -1
-        }));
-
-        return { ...parsed, clauses: adjustedClauses };
-      } catch (err: any) {
-        console.error(`[X-Ray] Chunk ${index} failure:`, err.message);
-        return null; // Return null so filter(Boolean) removes it, but other chunks persist
-      }
+      return { ...parsed, clauses: adjustedClauses };
     });
 
-    const results = await Promise.all(chunkPromises);
-    const chunkResults = results.filter(Boolean);
+    const chunkResults = await Promise.all(chunkPromises);
 
     if (chunkResults.length === 0) {
       return NextResponse.json({ 
@@ -240,6 +232,11 @@ export async function POST(request: Request) {
       score: finalRiskLevel === "High" ? 2.5 : finalRiskLevel === "Medium" ? 6.0 : 9.0,
       parsedText: documentText
     };
+
+    // Final Integrity Check
+    if (!finalResult.summary || !finalResult.metrics || !finalResult.clauses) {
+      throw new Error("Final analysis synthesis failed: Incomplete data structure.");
+    }
 
     return NextResponse.json(finalResult);
 

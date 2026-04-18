@@ -355,10 +355,16 @@ export default function XRayPage() {
         throw new Error(data.error || "Analysis failed.");
       }
 
+      // Strict Data Integrity Check
+      if (!data.summary || !data.metrics || !Array.isArray(data.clauses)) {
+        console.error("Critical: API returned incomplete data structure.", data);
+        throw new Error("Analysis data is incomplete. Please try again.");
+      }
+
       setScore(data.score ?? 5.0);
-      setClauses(data.clauses ?? []);
-      setMetrics(data.metrics ?? { interest_rate: '--', penalty_apr: '--', fees: [], tenure: '--', loan_amount: '--' });
-      setDocumentSummary(data.summary ?? null);
+      setClauses(data.clauses);
+      setMetrics(data.metrics);
+      setDocumentSummary(data.summary);
       
       const parsedContent = data.parsedText || content;
       setText(parsedContent);
@@ -367,7 +373,7 @@ export default function XRayPage() {
         summary: data.summary,
         clauses: data.clauses,
         metrics: data.metrics,
-        score: data.score,
+        score: data.score ?? 5.0,
         parsedText: parsedContent
       });
       
