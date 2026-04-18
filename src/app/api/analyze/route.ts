@@ -2,6 +2,57 @@ import { OpenAI } from "openai";
 import { NextResponse } from "next/server";
 
 // Analysis Engine - Force Reload: 2026-04-18T22:45:00
+
+async function extractTextFromPDF(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  let extractedText = "";
+
+  // Strategy 1: Fast parsing with pdf-parse
+  try {
+    // @ts-ignore - implicitly any
+    const pdfParse = await import("pdf-parse/lib/pdf-parse.js");
+    const data = await pdfParse.default(buffer);
+    if (data.text && data.text.trim().length > 100) {
+      return data.text.trim();
+    }
+  } catch (err) {
+    console.warn("[X-Ray] Primary parser (pdf-parse) failed, switching to legacy fallback.");
+  }
+
+  // Strategy 2: Robust parsing with pdfjs-dist (Legacy Build)
+  try {
+    // @ts-ignore - implicitly any
+    const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const loadingTask = pdfjsLib.getDocument({ 
+      data: new Uint8Array(buffer),
+      useWorkerFetch: false,
+      isEvalSupported: false,
+    });
+    
+    const pdf = await loadingTask.promise;
+    let fullText = "";
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(" ");
+      fullText += pageText + "\n";
+    }
+
+    extractedText = fullText.trim();
+  } catch (err: any) {
+    throw new Error(`Robust extraction failed: ${err.message}`);
+  }
+
+  if (extractedText.length < 50) {
+    throw new Error("Document structure recognized, but no meaningful text found. The PDF may be a scanned image.");
+  }
+
+  return extractedText;
+}
+
 export async function POST(request: Request) {
   try {
     console.log("[X-Ray] POST /api/analyze called");
@@ -26,19 +77,32 @@ export async function POST(request: Request) {
     
     let text: string | null = null;
     const formData = await request.formData();
-    text = formData.get("text") as string | null;
+    const rawText = formData.get("text") as string | null;
     const file = formData.get("pdf") as File | null;
 
     if (file) {
-      // @ts-ignore - implicitly any
-      const pdf = await import("pdf-parse/lib/pdf-parse.js");
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const data = await pdf.default(buffer);
-      text = data.text;
+      try {
+        console.log(`[X-Ray] Starting extraction for: ${file.name} (${file.size} bytes)`);
+        text = await extractTextFromPDF(file);
+        console.log(`[X-Ray] Extraction successful. Length: ${text.length} chars.`);
+      } catch (err: any) {
+        console.error("[X-Ray] PDF EXTRACTION CRITICAL FAILURE:", err.message);
+        return NextResponse.json({ 
+          error: "Failed to extract text from PDF", 
+          details: err.message,
+          suggestion: "Please ensure the PDF is not password-protected and contains selectable text (not just scanned images)."
+        }, { status: 422 });
+      }
+    } else {
+      text = rawText;
     }
 
-    if (!text || text.trim().length === 0 || text === "PDF File loaded. Ready to analyze...") {
-      return NextResponse.json({ error: "No text or invalid PDF provided" }, { status: 400 });
+    if (!text || text.trim().length < 50 || text === "PDF File loaded. Ready to analyze...") {
+      return NextResponse.json({ 
+        error: "Insufficient text content", 
+        details: "The document provided contains too little selectable text (< 50 characters).",
+        suggestion: "If this is a scanned document, please perform OCR before uploading or use a text-based version."
+      }, { status: 400 });
     }
 
     const documentText = text.trim();
