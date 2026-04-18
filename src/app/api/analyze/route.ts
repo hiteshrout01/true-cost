@@ -73,7 +73,7 @@ export async function POST(request: Request) {
               },
               { role: "user", content: `Chunk: ${chunk}` }
             ],
-            model: "gpt-4o-mini",
+            model: "openai/gpt-4o-mini",
             temperature: 0,
             max_tokens: 600,
             response_format: { type: "json_object" }
