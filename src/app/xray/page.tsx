@@ -32,7 +32,7 @@ export default function XRayPage() {
     tenure: '--',
     loan_amount: '--'
   });
-  const [documentSummary, setDocumentSummary] = useState<{overview: string, key_points: string[], risk_level: string} | null>(null);
+  const [documentSummary, setDocumentSummary] = useState<{overview: string, key_points: string[], risk_level: string, key_facts?: string[], key_risks?: string[]} | null>(null);
   
   // Token Structure
   type Token = {

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export default function ComparisonPage() {

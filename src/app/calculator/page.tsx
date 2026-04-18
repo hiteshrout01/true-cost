@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 export default function CalculatorPage() {
