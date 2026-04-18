@@ -83,73 +83,61 @@ export async function POST(request: Request) {
           messages: [
             { 
               role: "system",
-              content: `You are a high-fidelity financial document analyzer. Your goal is to provide a BALANCED analysis: capturing all critical risks without being overly strict. 
-              Return your analysis in valid JSON format.
+              content: `Return ONLY valid JSON. Do not include any text, explanation, or markdown. Output must start with { and end with }.
+              
+              You are a high-fidelity financial document analyzer. Provide a balanced analysis: capture all critical risks without being overly strict. 
 
-              1. MANDATORY GOAL:
-                 - ALWAYS extract at least 5-10 clauses if the document contains any risks.
-                 - Capture penalties, APR increases, late fees, and legal consequences.
-                 - Capture beneficial terms (favorable) like 0% periods.
+              STRICT OUTPUT STRUCTURE (JSON):
+              {
+                "summary": {
+                  "overview": "2-3 factual sentences. No fluff. No generic adjectives.",
+                  "risk_level": "Low | Medium | High",
+                  "key_facts": ["Bullet point with exact numbers ($ or %)"],
+                  "key_risks": ["Specific consequence and trigger condition"]
+                },
+                "clauses": [
+                  {
+                    "text": "FULL sentence from document",
+                    "type": "high_risk | warning | favorable",
+                    "reason": "Specific impact summary"
+                  }
+                ],
+                "metrics": {
+                  "interest_rate": "...",
+                  "penalty_apr": "...",
+                  "fees": ["List specific $ amounts"],
+                  "loan_amount": "...",
+                  "tenure": "..."
+                }
+              }
 
-              2. STRICT OUTPUT STRUCTURE (JSON):
-                 {
-                   "summary": {
-                     "overview": "2-3 factual sentences. No fluff. No generic adjectives.",
-                     "risk_level": "Low | Medium | High",
-                     "key_facts": ["Bullet point with exact numbers ($ or %)"],
-                     "key_risks": ["Specific consequence and trigger condition"]
-                   },
-                   "clauses": [
-                     {
-                       "text": "FULL sentence from document",
-                       "type": "high_risk | warning | favorable",
-                       "reason": "Specific impact summary"
-                     }
-                   ],
-                   "metrics": {
-                     "interest_rate": "...",
-                     "penalty_apr": "...",
-                     "fees": ["List specific $ amounts"],
-                     "loan_amount": "...",
-                     "tenure": "..."
-                   }
-                 }
-
-              3. STRICT RULES FOR SUMMARY:
-                 - NO GENERIC PHRASES: Avoid 'substantial', 'significant', 'mix of terms'.
-                 - ALWAYS INCLUDE NUMBERS: Every fact must have a value (e.g. 26% APR, $95 fee).
-                 - NO HALLUCINATIONS: Only state what is explicitly in the text.
-                 - CONCISE: One idea per bullet point.
-
-              3. FULL SENTENCES & FLEXIBLE MATCHING:
-                 - Each 'text' MUST be a complete, logical sentence.
-                 - No fragments or broken words.
-                 - Minor differences in punctuation or spacing are acceptable for logical completeness.
-
-              4. MANDATORY METRICS EXTRACTION:
-                 - DO NOT leave as 'N/A' if found in text.
-                 - Penalty APR (e.g. 39%), Interest Rates (e.g. 26.99%), Loan Amounts (e.g. $15,000), Fees ($95, etc.).
-
-              5. CLASSIFICATION logic:
-                 - high_risk: Severities, APR spikes, legal action, default.
-                 - warning: Mixed clauses, late fees, credit impact.
-                 - favorable: Benefits, flexibility, 0% terms.`
+              STRICT RULES:
+              1. NO GENERIC PHRASES: Avoid 'substantial', 'significant'.
+              2. ALWAYS INCLUDE NUMBERS: Facts must have values (e.g. 26% APR, $95 fee).
+              3. NO HALLUCINATIONS: Only what is explicitly in the text.
+              4. FULL SENTENCES: 'text' MUST be a complete sentence.
+              5. CLASSIFICATION: high_risk (APR spikes, default), warning (late fees), favorable (0% terms).`
             },
             { role: "user", content: `Analyze this text chunk: ${chunk}` }
           ],
           model: "gpt-4o-mini",
           temperature: 0,
+          max_tokens: 4096,
           response_format: { type: "json_object" }
         });
 
-        const content = response.choices[0].message.content;
-        if (!content) throw new Error("Empty AI response");
+        const raw = response.choices[0].message.content;
+        console.log("AI RAW RESPONSE:", raw);
+        
+        if (!raw || !raw.trim().startsWith("{")) {
+          throw new Error("Invalid AI response: Does not start with JSON object.");
+        }
 
         try {
-          const parsed = JSON.parse(content);
+          const parsed = JSON.parse(raw);
           // Validation Layer: Must have clauses and summary
           if (!parsed.summary || !parsed.clauses) {
-            console.error("[X-Ray] Missing required top-level fields in chunk result:", content);
+            console.error("[X-Ray] Missing required top-level fields in chunk result:", raw);
             throw new Error("Invalid schema: Missing clauses or summary");
           }
           // Default metrics if missing
