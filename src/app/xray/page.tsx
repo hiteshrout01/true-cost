@@ -146,7 +146,7 @@ export default function XRayPage() {
             const keywordsObj = flag.word.match(keywordPattern);
             
             if (keywordsObj && keywordsObj.length > 0) {
-                 keywordsObj.forEach(kw => {
+                 keywordsObj.forEach((kw: string) => {
                      const safeKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                      const kwRegex = new RegExp(`\\b(${safeKw})\\b`, 'gi');
                      highlightedText = highlightedText.replace(kwRegex, safeReplacer);

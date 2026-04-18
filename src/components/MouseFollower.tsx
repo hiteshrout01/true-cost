@@ -20,7 +20,7 @@ export default function MouseFollower() {
   // Trails geometry
   const numTrails = 5;
   const trailPositions = useRef(Array(numTrails).fill({x: -100, y: -100}));
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.matchMedia("(any-pointer: coarse)").matches) {
@@ -157,7 +157,7 @@ export default function MouseFollower() {
       {Array.from({length: 5}).map((_, idx) => (
         <div 
           key={idx}
-          ref={el => trailsRef.current[idx] = el}
+          ref={el => { trailsRef.current[idx] = el; }}
           className="fixed top-0 left-0 pointer-events-none z-[99997] mix-blend-screen will-change-transform"
           style={{ transform: 'translate3d(-100px, -100px, 0)' }}
         >
