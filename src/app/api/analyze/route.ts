@@ -5,11 +5,13 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   console.log("[X-Ray] POST /api/analyze called");
   
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    console.error("[X-Ray] OPENROUTER_API_KEY is missing from environment variables");
-    return NextResponse.json({ error: "Server configuration error: Missing API Key" }, { status: 500 });
+  if (!process.env.OPENROUTER_API_KEY) {
+    console.error("[X-Ray] CRITICAL: OPENROUTER_API_KEY is missing from environment variables.");
+    throw new Error("Missing OPENROUTER_API_KEY");
   }
+
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  console.log("[X-Ray] OPENROUTER_API_KEY validated successfully.");
 
   let text: string | null = null;
   try {
