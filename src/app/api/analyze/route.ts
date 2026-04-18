@@ -1,113 +1,264 @@
 import { OpenAI } from "openai";
 import { NextResponse } from "next/server";
-const client = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1", // Using user provided OpenRouter
-  apiKey: "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",
-});
 
+// Analysis Engine - Force Reload: 2026-04-18T22:45:00
 export async function POST(request: Request) {
+  console.log("[X-Ray] POST /api/analyze called");
+  let text: string | null = null;
   try {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      throw new Error("OPENROUTER_API_KEY is not configured in .env.local");
+    }
+
+    const client = new OpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey: apiKey,
+      defaultHeaders: {
+        "HTTP-Referer": "http://localhost:3000",
+        "X-Title": "FinSight Analysis",
+      },
+      timeout: 45000, // Increased timeout for complex PDFs
+    });
+    
     const formData = await request.formData();
-    let text = formData.get("text") as string | null;
+    text = formData.get("text") as string | null;
     const pdfFile = formData.get("pdf") as File | null;
 
     if (pdfFile) {
-      const pdfParse = require("pdf-parse"); // Dynamic import to prevent build errors
+      console.log(`[X-Ray] Received PDF: ${pdfFile.name} (${pdfFile.size} bytes)`);
       const buffer = Buffer.from(await pdfFile.arrayBuffer());
-      const pdfData = await pdfParse(buffer);
-      text = pdfData.text;
+      try {
+        const pdfParse = require("pdf-parse"); 
+        const pdfData = await pdfParse(buffer);
+        text = pdfData.text;
+        console.log(`[X-Ray] PDF Extraction Success. First 50 chars: "${text?.substring(0, 50).trim()}"`);
+      } catch (pdfErr: any) {
+        console.error("[X-Ray] PDF parse error:", pdfErr);
+        const rawText = buffer.toString("utf-8");
+        const nonPrintables = (rawText.match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g) || []).length;
+        if (nonPrintables < rawText.length * 0.1 && rawText.trim().length > 0) {
+           text = rawText;
+        } else {
+           throw new Error(`Failed to parse PDF document. Error: ${pdfErr.message}. Please use text input instead.`);
+        }
+      }
     }
 
-    if (!text || text.trim().length === 0) {
+    if (!text || text.trim().length === 0 || text === "PDF File loaded. Ready to analyze...") {
       return NextResponse.json({ error: "No text or invalid PDF provided" }, { status: 400 });
     }
 
-    // Optional: limit text size if documents are too huge
-    if (text.length > 100000) {
-      text = text.substring(0, 100000);
+    const documentText = text;
+    const CHUNK_SIZE = 8000; 
+    const chunks: string[] = [];
+    
+    let currentPos = 0;
+    while (currentPos < text.length) {
+      let endPos = currentPos + CHUNK_SIZE;
+      if (endPos < text.length) {
+        const lastNewline = text.lastIndexOf('\n', endPos);
+        if (lastNewline > currentPos + 4000) {
+          endPos = lastNewline;
+        }
+      } else {
+        endPos = text.length;
+      }
+      chunks.push(text.substring(currentPos, endPos));
+      currentPos = endPos;
     }
 
-    const response = await client.chat.completions.create({
-      messages: [
-        { 
-          role: "system",
-          content: `You are a high-precision financial intelligence system designed to analyze complex financial agreements and expose their true cost, risks, and hidden conditions. Your goal is NOT just to summarize — but to reveal what the user might miss.
+    console.log(`[X-Ray] Starting analysis for ${chunks.length} chunks...`);
 
-Your task is to analyze the provided financial document and extract the following structured information in JSON format ONLY:
+    const chunkPromises = chunks.map(async (chunk, index) => {
+      const isFirstChunk = index === 0;
+      
+      const fetchAnalysis = async (retry = true): Promise<any> => {
+        const response = await client.chat.completions.create({
+          messages: [
+            { 
+              role: "system",
+              content: `You are a high-fidelity financial document analyzer. Your goal is to provide a BALANCED analysis: capturing all critical risks without being overly strict. 
+              Return your analysis in valid JSON format.
 
-1. "score": A transparency/safety score from 0.0 (extremely risky/predatory) to 10.0 (completely safe and transparent). Return as a number.
-2. "scoreBreakdown": An array of exactly 3 to 5 objects driving the score logic. E.g. [{"factor": "High APR", "impact": -3}, {"factor": "Hidden Fees", "impact": -2}, {"factor": "Favorable Offer", "impact": 1.5}]. Real numbers evaluating positive or negative impact points!
-3. "riskCategory": One of "Low Risk", "Medium Risk", or "High Risk".
-4. "insights": An object containing "apr", "tenure", and "principal" extracted from the text. IMPORTANT: Convert any Dollar ($) amounts to Indian Rupee (₹) using an approximate exchange rate (e.g., 1 USD = 83 INR) and use INR for all financial values. If not found, use "--".
-4. "high_risk": An EXHAUSTIVE array of objects representing high-risk clauses from the document (e.g. penalty APR, late fees, variable interest, compounding effects). You MUST extract the exact lines, phrases, or clauses.
-    - "text": exact clause or sentence from document (NO paraphrasing).
-    - "reason": clear consequence of why this is high risk.
-5. "warning": An EXHAUSTIVE array of objects for ambiguous, conditional, or moderately risky clauses.
-    - "text": exact clause or sentence from document.
-    - "reason": why this is a warning.
-6. "favorable": An EXHAUSTIVE array of objects for clauses that provide genuine borrower benefit without hidden conditions.
-    - "text": exact clause or sentence from document.
-    - "reason": why this is favorable.
-7. "summary": A structured summary of the document. Use plain HTML tags (<b>, <ul>, <li>, <br/>) for formatting. STRICTLY follow this structure and core instructions:
+              1. MANDATORY GOAL:
+                 - ALWAYS extract at least 5-10 clauses if the document contains any risks.
+                 - Capture penalties, APR increases, late fees, and legal consequences.
+                 - Capture beneficial terms (favorable) like 0% periods.
 
-CORE INSTRUCTIONS FOR SUMMARY:
-- Be extremely precise with numbers (DO NOT use vague terms like "high" or "low" without numbers).
-- If original text uses Dollars ($), convert these values to Indian Rupee (₹ INR) in the summary based on 1 USD = 83 INR approx.
-- Detect and highlight HIGH-RISK elements aggressively (e.g. Penalty APR increases, late fees). Explain the REAL consequence (e.g., "Missing one payment increases interest to 39% APR").
-- Identify HIDDEN COSTS (processing, maintenance, documentation).
-- Detect MISLEADING or FAVORABLE statements and explain WHY they hide long-term costs.
-- Explain COMPOUNDING IMPACT clearly if applicable.
-- Make risks impossible to ignore. Sound like a financial expert system, not generic.
+              2. STRICT OUTPUT STRUCTURE (JSON):
+                 {
+                   "summary": {
+                     "overview": "2-3 factual sentences. No fluff. No generic adjectives.",
+                     "risk_level": "Low | Medium | High",
+                     "key_facts": ["Bullet point with exact numbers ($ or %)"],
+                     "key_risks": ["Specific consequence and trigger condition"]
+                   },
+                   "clauses": [
+                     {
+                       "text": "FULL sentence from document",
+                       "type": "high_risk | warning | favorable",
+                       "reason": "Specific impact summary"
+                     }
+                   ],
+                   "metrics": {
+                     "interest_rate": "...",
+                     "penalty_apr": "...",
+                     "fees": ["List specific $ amounts"],
+                     "loan_amount": "...",
+                     "tenure": "..."
+                   }
+                 }
 
-SUMMARY FORMAT (MUST USE THIS EXACT HTML STRUCTURE):
-<b>Summary:</b><br/>[Clear, powerful paragraph explaining the overall situation and risk]<br/><br/>
-<b>Key Details:</b><ul><li>Loan Amount: [value in INR]</li><li>Interest Rate (include promotional + standard): [value]</li><li>Penalty Interest Rate: [value]</li><li>Tenure: [value]</li><li>Monthly Payment: [value in INR]</li></ul><br/>
-<b>Hidden Costs:</b><ul><li>[list or "None found"]</li></ul><br/>
-<b>Risks:</b><ul><li>[list with clear consequences or "None found"]</li></ul><br/>
-<b>Favorable but Misleading Points:</b><ul><li>[Identify promotional traps and explain why or "None found"]</li></ul><br/>
-<b>Overall Insight:</b><br/>[Strong concluding statement stating if this is low, moderate, or high risk]
+              3. STRICT RULES FOR SUMMARY:
+                 - NO GENERIC PHRASES: Avoid 'substantial', 'significant', 'mix of terms'.
+                 - ALWAYS INCLUDE NUMBERS: Every fact must have a value (e.g. 26% APR, $95 fee).
+                 - NO HALLUCINATIONS: Only state what is explicitly in the text.
+                 - CONCISE: One idea per bullet point.
 
-IMPORTANT: Do NOT give financial advice. Do NOT guess missing values. Do NOT hallucinate names or facts not actively presented in the text.
-8. "simpleLanguage": An array of objects for complex terms offering plain English translations.
-    - "original": the complex legal word
-    - "translation": plain English equivalent.
-    
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`
-        },
-        { 
-          role: "user", 
-          content: text 
+              3. FULL SENTENCES & FLEXIBLE MATCHING:
+                 - Each 'text' MUST be a complete, logical sentence.
+                 - No fragments or broken words.
+                 - Minor differences in punctuation or spacing are acceptable for logical completeness.
+
+              4. MANDATORY METRICS EXTRACTION:
+                 - DO NOT leave as 'N/A' if found in text.
+                 - Penalty APR (e.g. 39%), Interest Rates (e.g. 26.99%), Loan Amounts (e.g. $15,000), Fees ($95, etc.).
+
+              5. CLASSIFICATION logic:
+                 - high_risk: Severities, APR spikes, legal action, default.
+                 - warning: Mixed clauses, late fees, credit impact.
+                 - favorable: Benefits, flexibility, 0% terms.`
+            },
+            { role: "user", content: `Analyze this text chunk: ${chunk}` }
+          ],
+          model: "gpt-4o-mini",
+          temperature: 0,
+          response_format: { type: "json_object" }
+        });
+
+        const content = response.choices[0].message.content;
+        if (!content) throw new Error("Empty AI response");
+
+        try {
+          const parsed = JSON.parse(content);
+          // Validation Layer: Must have clauses and summary
+          if (!parsed.summary || !parsed.clauses) {
+            console.error("[X-Ray] Missing required top-level fields in chunk result:", content);
+            throw new Error("Invalid schema: Missing clauses or summary");
+          }
+          // Default metrics if missing
+          if (!parsed.metrics) {
+            parsed.metrics = { interest_rate: "...", penalty_apr: "...", fees: [], tenure: "...", loan_amount: "..." };
+          }
+          return parsed;
+        } catch (err: any) {
+          if (retry) {
+            console.warn(`[X-Ray] Malformed response (retry ${retry}): ${err.message}`);
+            return fetchAnalysis(false);
+          }
+          throw err;
         }
-      ],
-      model: "openai/gpt-4o-mini",
-      temperature: 0.1,
-      response_format: { type: "json_object" }
+      };
+
+      try {
+        const parsed = await fetchAnalysis();
+        if (!parsed) return null;
+
+        const offset = documentText.indexOf(chunk);
+        
+        // Adjust indices
+        const adjustedClauses = (parsed.clauses || []).map((c: any) => ({
+          ...c,
+          start: typeof c.start === 'number' ? c.start + offset : -1,
+          end: typeof c.end === 'number' ? c.end + offset : -1
+        }));
+
+        return { ...parsed, clauses: adjustedClauses };
+      } catch (err: any) {
+        console.error(`[X-Ray] Chunk ${index} failure:`, err.message);
+        return null; // Return null so filter(Boolean) removes it, but other chunks persist
+      }
     });
 
-    const choice = response.choices[0].message.content;
-    if (!choice) {
-      throw new Error("No response from AI model.");
+    const results = await Promise.all(chunkPromises);
+    const chunkResults = results.filter(Boolean);
+
+    if (chunkResults.length === 0) {
+      // Return a friendly response even if no data found
+      return NextResponse.json({
+        summary: {
+          overview: "The analysis system was unable to extract financial data from this specific document. Please ensure it is a text-based financial agreement.",
+          risk_level: "Medium",
+          key_facts: ["No specific numbers detected"],
+          key_risks: ["Analysis incomplete due to document format"]
+        },
+        metrics: { interest_rate: "N/A", penalty_apr: "N/A", fees: [], tenure: "N/A", loan_amount: "N/A" },
+        clauses: [],
+        score: 5.0,
+        parsedText: documentText
+      });
     }
+
+    // Restoration: Deduplication & Merging match pre-deployment behavior
+    const allClauses = chunkResults.flatMap(r => r.clauses || []);
+    const uniqueClauses = Array.from(new Map(allClauses.map(c => [`${c.start}-${c.end}-${c.text}`, c])).values());
+
+    // Merging of Metrics (Aggregate All)
+    const allFees = new Set<string>();
+    let maxInterestRate = "TBD";
+    let maxPenaltyApr = "TBD";
+    let tenure = "TBD";
+    let loanAmount = "TBD";
+
+    chunkResults.forEach(r => {
+      const m = r.metrics || {};
+      if (m.fees) m.fees.forEach((f: string) => allFees.add(f));
+      if (m.interest_rate && m.interest_rate !== "..." && m.interest_rate !== "N/A" && m.interest_rate !== "TBD") maxInterestRate = m.interest_rate;
+      if (m.penalty_apr && m.penalty_apr !== "..." && m.penalty_apr !== "N/A" && m.penalty_apr !== "TBD") maxPenaltyApr = m.penalty_apr;
+      if (m.tenure && m.tenure !== "..." && m.tenure !== "N/A" && m.tenure !== "TBD") tenure = m.tenure;
+      if (m.loan_amount && m.loan_amount !== "..." && m.loan_amount !== "N/A" && m.loan_amount !== "TBD") loanAmount = m.loan_amount;
+    });
+
+    // Synthesize Final Summary from all finding (Restored Logic)
+    const riskLevels = chunkResults.map(r => r.summary?.risk_level || "Low");
+    const finalRiskLevel = riskLevels.includes("High") ? "High" : riskLevels.includes("Medium") ? "Medium" : "Low";
     
-    let result = JSON.parse(choice);
-    // Ensure breakdown defaults cleanly
-    result.scoreBreakdown = result.scoreBreakdown || [];
+    // Concatenate overview strings for a complete summary
+    const overviews = chunkResults.map(r => r.summary?.overview).filter(Boolean);
+    const finalOverview = overviews.length > 0 ? overviews.join(" ") : "No high-impact financial risks identified.";
+    
+    // Aggregate key points from all chunks
+    const allKeyFacts = Array.from(new Set(chunkResults.flatMap(r => r.summary?.key_facts || [])));
+    const allKeyRisks = Array.from(new Set(chunkResults.flatMap(r => r.summary?.key_risks || [])));
+    
+    // Final Summary Aggregation
+    const finalSummary = {
+      overview: finalOverview,
+      risk_level: chunkResults.some(r => r.summary.risk_level === 'High') ? 'High' : 
+                  chunkResults.some(r => r.summary.risk_level === 'Medium') ? 'Medium' : 'Low',
+      key_facts: allKeyFacts.slice(0, 6),
+      key_risks: allKeyRisks.slice(0, 6)
+    };
 
-    // Unify the new risk models back into the legacy flags format expected by UI
-    result.flags = [
-      ...(result.high_risk || []).map((r: any) => ({ word: r.text, type: "red", explanation: r.reason })),
-      ...(result.warning || []).map((r: any) => ({ word: r.text, type: "yellow", explanation: r.reason })),
-      ...(result.favorable || []).map((r: any) => ({ word: r.text, type: "green", explanation: r.reason }))
-    ];
-    // Also pass back the parsed text so the frontend can display the actual PDF content
-    result.parsedText = text;
+    const finalResult = {
+      summary: finalSummary,
+      metrics: {
+        interest_rate: maxInterestRate,
+        penalty_apr: maxPenaltyApr,
+        fees: Array.from(allFees),
+        tenure: tenure,
+        loan_amount: loanAmount
+      },
+      clauses: uniqueClauses,
+      score: finalRiskLevel === "High" ? 2.5 : finalRiskLevel === "Medium" ? 6.0 : 9.0,
+      parsedText: documentText
+    };
 
-    return NextResponse.json(result);
+    return NextResponse.json(finalResult);
+
   } catch (error: any) {
-    console.error("AI Analysis Error:", error);
-    return NextResponse.json(
-      { error: "Failed to analyze document.", details: error.message }, 
-      { status: 500 }
-    );
+    console.error("Critical AI Analysis Error:", error);
+    return NextResponse.json({ error: error.message || "Financial analysis system unavailable." }, { status: 500 });
   }
 }

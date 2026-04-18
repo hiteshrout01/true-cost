@@ -7,8 +7,10 @@ import AnimatedHighlight from '@/components/AnimatedHighlight';
 import AIThinkingIndicator from '@/components/AIThinkingIndicator';
 import ProgressiveHighlighter from '@/components/ProgressiveHighlighter';
 import ScoreCounter from '@/components/ScoreCounter';
+import { useReportData } from '@/context/ReportContext';
 
 export default function XRayPage() {
+  const { setAnalysis } = useReportData();
   const [text, setText] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -22,13 +24,25 @@ export default function XRayPage() {
   const [score, setScore] = useState(8.0);
   const [scoreBreakdown, setScoreBreakdown] = useState<{factor:string, impact:number}[]>([]);
   const [riskCategory, setRiskCategory] = useState("Low Risk");
-  const [flags, setFlags] = useState<{word:string, type:string, explanation:string}[]>([]);
-  const [insights, setInsights] = useState<{apr: string, tenure: string, principal: string}>({apr: '--', tenure: '--', principal: '--'});
-  const [translations, setTranslations] = useState<{original:string, translation:string}[]>([]);
-  const [documentSummary, setDocumentSummary] = useState("");
+  const [clauses, setClauses] = useState<{text:string, type:string, reason:string, start?: number, end?: number}[]>([]);
+  const [metrics, setMetrics] = useState<{interest_rate: string, penalty_apr: string, fees: string[], tenure: string, loan_amount: string}>({
+    interest_rate: '--',
+    penalty_apr: '--',
+    fees: [],
+    tenure: '--',
+    loan_amount: '--'
+  });
+  const [documentSummary, setDocumentSummary] = useState<{overview: string, key_points: string[], risk_level: string} | null>(null);
   
-  // Tooltip State
-  const [tooltip, setTooltip] = useState<{visible: boolean, x: number, y: number, type: string, explanation: string}>({visible: false, x: 0, y: 0, type: '', explanation: ''});
+  // Token Structure
+  type Token = {
+    text: string;
+    type: "normal" | "highlight";
+    clause?: {
+      level: "red" | "yellow" | "green" | "gray";
+      explanation: string;
+    };
+  };
 
   useEffect(() => {
     if (analyzed && !isScanning) {
@@ -47,8 +61,6 @@ export default function XRayPage() {
       
       if (file.name.toLowerCase().endsWith('.pdf') || file.type === "application/pdf") {
         setText("PDF File loaded. Ready to analyze...");
-        // Do not read text dynamically for PDF, our PDF parse will handle it in backend.
-        // We can just trigger analysis directly
         triggerAnalysis("", file);
       } else {
         reader.onload = (ev) => {
@@ -61,256 +73,303 @@ export default function XRayPage() {
     }
   };
 
+  const normalizeText = (t: string) => t.toLowerCase().replace(/[.,;:!?]/g, '').replace(/\s+/g, ' ').trim();
+
+  const splitIntoSentences = (text: string): { text: string; start: number; end: number }[] => {
+    if (!text) return [];
+    
+    // Improved regex to handle common abbreviations and split on . ! ?
+    const sentenceRegex = /[^.!?\s][^.!?]*(?:[.!?](?!['" ]?\s*[a-z])[.!?]*['" ]?|\s*)/g;
+    const matches = Array.from(text.matchAll(sentenceRegex));
+    
+    return matches.map(match => ({
+      text: match[0],
+      start: match.index!,
+      end: match.index! + match[0].length
+    }));
+  };
+
+  const parseDocument = (fullText: string, aiClauses: any[]): Token[] => {
+    if (!fullText) return [];
+    
+    // 1. Process Sentences
+    const sentences = splitIntoSentences(fullText);
+    const filteredClauses = (aiClauses || []).filter(c => c.type !== 'neutral');
+
+    if (filteredClauses.length === 0) return [{ text: fullText, type: "normal" }];
+
+    // 2. Map Clauses to Sentences
+    const highlightedSentences = new Set<number>();
+    const sentenceMappings = new Map<number, any>();
+
+    filteredClauses.forEach(clause => {
+      const normalizedClause = normalizeText(clause.text);
+      if (!normalizedClause) return;
+
+      let bestMatchIdx = -1;
+      let highestSimilarity = 0;
+
+      sentences.forEach((s, idx) => {
+        const normalizedSentence = normalizeText(s.text);
+        if (!normalizedSentence) return;
+
+        // Requirement 3: Use first 30-50 characters for flexible matching
+        const clauseStart = normalizedClause.substring(0, 50);
+        
+        // Check if the sentence starts with or contains the clause core
+        if (normalizedSentence.includes(clauseStart) || normalizedClause.includes(normalizedSentence.substring(0, 50))) {
+          // Calculate a simple similarity score based on shared content
+          const similarity = normalizedSentence.length > 0 ? (Math.min(normalizedClause.length, normalizedSentence.length) / Math.max(normalizedClause.length, normalizedSentence.length)) : 0;
+          
+          if (similarity > highestSimilarity) {
+            highestSimilarity = similarity;
+            bestMatchIdx = idx;
+          }
+        }
+      });
+
+      // Requirement 6: fallback to fuzzy match if mapping fails
+      if (bestMatchIdx === -1) {
+         // Fallback: Check if substantial keywords overlap
+         const clauseKeywords = normalizedClause.split(' ').filter(k => k.length > 4);
+         sentences.forEach((s, idx) => {
+           const normalizedSentence = normalizeText(s.text);
+           if (clauseKeywords.some(k => normalizedSentence.includes(k)) && clauseKeywords.length > 0) {
+              bestMatchIdx = idx;
+           }
+         });
+      }
+
+      if (bestMatchIdx !== -1) {
+        highlightedSentences.add(bestMatchIdx);
+        // Prioritize higher risks if multiple clauses match the same sentence
+        const existing = sentenceMappings.get(bestMatchIdx);
+        if (!existing || (clause.type === 'high_risk' && existing.type !== 'high_risk')) {
+          sentenceMappings.set(bestMatchIdx, clause);
+        }
+      }
+    });
+
+    // 3. Convert Sentences to Tokens
+    const tokens: Token[] = [];
+    let lastSentenceEnd = 0;
+
+    sentences.forEach((s, idx) => {
+      // Add interstitial text (though splitIntoSentences should cover it)
+      if (s.start > lastSentenceEnd) {
+        tokens.push({ text: fullText.substring(lastSentenceEnd, s.start), type: "normal" });
+      }
+
+      const match = sentenceMappings.get(idx);
+      if (match) {
+        const typeMap: Record<string, "red" | "yellow" | "green" | "gray"> = {
+          'high_risk': 'red',
+          'warning': 'yellow',
+          'favorable': 'green'
+        };
+
+        tokens.push({
+          text: s.text,
+          type: "highlight",
+          clause: { level: typeMap[match.type] || 'gray', explanation: match.reason }
+        });
+      } else {
+        tokens.push({ text: s.text, type: "normal" });
+      }
+      lastSentenceEnd = s.end;
+    });
+
+    // Add trailing text
+    if (lastSentenceEnd < fullText.length) {
+      tokens.push({ text: fullText.substring(lastSentenceEnd), type: "normal" });
+    }
+
+    return tokens;
+  };
+
   const generateHighlightedText = () => {
     if (!analyzed) return <p className="text-on-surface-variant italic">Waiting for document analysis...</p>;
-    if (errorMsg) return <p className="text-error">{errorMsg}</p>;
-    // Render Both Summary and Document Text when simpleLanguage is active
+    if (errorMsg) return <div className="leading-relaxed whitespace-pre-wrap interactive-document font-sans text-on-surface/90">{text}</div>;
+
     let summaryBlock = null;
     if (simpleLanguage && documentSummary) {
       summaryBlock = (
-        <div className="mb-8 p-6 bg-secondary/10 rounded-xl border border-secondary/20">
-          <h3 className="text-lg font-bold text-primary flex items-center gap-2 mb-4">
-            <span className="material-symbols-outlined">psychology</span>
-            AI Plain English Summary
-          </h3>
-          <div 
-            className="leading-relaxed text-on-surface/90 text-[15px] summary-content space-y-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-4 [&>b]:text-primary"
-            dangerouslySetInnerHTML={{ __html: documentSummary }} 
-          />
+        <div className="mb-8 p-6 bg-secondary/5 rounded-2xl border border-secondary/10 backdrop-blur-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-secondary flex items-center gap-3">
+              <span className="material-symbols-outlined text-secondary">analytics</span>
+              Precision Financial Summary
+            </h3>
+            <div className="px-3 py-1 rounded-full bg-secondary/10 text-[10px] font-bold text-secondary uppercase tracking-[0.1em] border border-secondary/20">
+              Verified Analysis
+            </div>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+              <p className="text-on-surface/90 text-sm leading-relaxed italic">"{documentSummary.overview}"</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Key Facts Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-tertiary">
+                  <span className="material-symbols-outlined text-sm">fact_check</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">Key Facts</span>
+                </div>
+                <ul className="space-y-2">
+                  {(documentSummary.key_facts || []).map((fact: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-sm text-on-surface/80 group">
+                      <span className="text-tertiary mt-1 text-[10px] opacity-50 group-hover:opacity-100 transition-opacity">●</span>
+                      <span>{fact}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Key Risks Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-error">
+                  <span className="material-symbols-outlined text-sm">warning</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">Key Risks</span>
+                </div>
+                <ul className="space-y-2">
+                  {(documentSummary.key_risks || []).map((risk: string, idx: number) => (
+                    <li key={idx} className="flex gap-3 text-sm text-on-surface/80 group">
+                      <span className="text-error mt-1 text-[10px] opacity-50 group-hover:opacity-100 transition-opacity">●</span>
+                      <span>{risk}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }
 
-    let highlightedText = text;
-
-    // Apply flags logic
-    if (flags && flags.length > 0) {
-      // 1. Deduplicate Highlight Array to prevent overlapping same tags
-      const uniqueFlagsMap = new Map();
-      flags.forEach(flag => {
-         if (!uniqueFlagsMap.has(flag.word)) {
-             uniqueFlagsMap.set(flag.word, flag);
-         }
-      });
-      let uniqueFlags = Array.from(uniqueFlagsMap.values());
-      
-      // 2. Sort by Severity (Red -> Yellow -> Green)
-      const priority: Record<string, number> = { "red": 0, "yellow": 1, "green": 2 };
-      uniqueFlags.sort((a, b) => priority[a.type] - priority[b.type]);
-
-      uniqueFlags.forEach(flag => {
-        let colorClasses = "";
-        if (flag.type === "red") {
-          colorClasses = "highlight-red bg-error/10 border-l-[3px] border-error text-error drop-shadow-[0_0_8px_rgba(255,84,73,0.25)] animate-pulse-red";
-        } else if (flag.type === "yellow") {
-          colorClasses = "highlight-yellow bg-[#facc15]/15 border-l-[3px] border-[#facc15] text-[#facc15] animate-shimmer-yellow";
-        } else if (flag.type === "green") {
-          colorClasses = "highlight-green bg-tertiary/15 border-l-[3px] border-tertiary text-tertiary animate-pulse-green";
-        }
-
-        if (!flag.word) return;
-        
-        let safeWord = flag.word.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Flexible whitespace and quote matching for messy PDF formats
-        safeWord = safeWord.replace(/[\s\n\r]+/g, '[\\s\\n\\r]+').replace(/['"]/g, '[\'"‘’“”]');
-        
-        const prefix = /^[\w]/.test(flag.word) ? '\\b' : '';
-        const suffix = /[\w]$/.test(flag.word) ? '\\b' : '';
-        let regex = new RegExp(`${prefix}(${safeWord})${suffix}`, 'gi');
-        
-        let safeReason = flag.explanation.replace(/"/g, '&quot;');
-        
-        // Custom Replacer to PREVENT NESTED OVERLAPPING TAGS (Safe Override)
-        const safeReplacer = (match: string, p1?: any, offset?: number, string?: string) => {
-            // Based on string replace signature, offset can be 2nd or 3rd arg depending on groups
-            const trueOffset = typeof p1 === 'number' ? p1 : (typeof offset === 'number' ? offset : 0);
-            const strContext = typeof p1 === 'number' ? offset : string; // string is the last arg generally
-            
-            const upToMatch = (strContext as unknown as string).substring(0, trueOffset);
-            const openSpans = (upToMatch.match(/<span/g) || []).length;
-            const closeSpans = (upToMatch.match(/<\/span>/g) || []).length;
-            if (openSpans > closeSpans) return match; // Already claimed by higher priority tag!
-            
-            // Apply the tag! Note parameter matching differences, wrap specifically the match (which could be group $1)
-            let matchText = match;
-            return `<span class="${colorClasses} cursor-help px-1 rounded-r-sm font-semibold flag-highlight" data-type="${flag.type}" data-reason="${safeReason}">${matchText}</span>`;
-        };
-        
-        if (regex.test(highlightedText)) {
-            // Apply exact match
-            regex = new RegExp(`${prefix}(${safeWord})${suffix}`, 'gi');
-            highlightedText = highlightedText.replace(regex, safeReplacer);
-        } else {
-            // FALLBACK MATCHING: Extract highly relevant financial keywords/numbers if exact string doesn't match
-            const keywordPattern = /\b(\d+%|39% APR|processing fee|maintenance fee|late fee|penalty|₹?\d+(?:\.\d+)?|variable interest|compounding)\b/gi;
-            const keywordsObj = flag.word.match(keywordPattern);
-            
-            if (keywordsObj && keywordsObj.length > 0) {
-                 keywordsObj.forEach((kw: string) => {
-                     const safeKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                     const kwRegex = new RegExp(`\\b(${safeKw})\\b`, 'gi');
-                     highlightedText = highlightedText.replace(kwRegex, safeReplacer);
-                 });
-            } else {
-                 // EXTREME FALLBACK: Use chunk matching (first 30 characters of the flag word)
-                 const snippet = flag.word.length > 30 ? flag.word.substring(0, 30) : flag.word;
-                 const safeSnippet = snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[\s\n\r]+/g, '[\\s\\n\\r]+');
-                 const snipRegex = new RegExp(`(${safeSnippet})`, 'gi');
-                 highlightedText = highlightedText.replace(snipRegex, safeReplacer);
-            }
-        }
-      });
-      
-      // EXTRA EXHAUSTIVE FALLBACK: Tag remaining high-risk words that weren't captured into Warning state
-      const globalRisks = ["penalty", "interest", "APR", "fee", "default", "liability", "charge", "late"];
-      globalRisks.forEach(kw => {
-         const kwRegex = new RegExp(`\\b(${kw})\\b`, 'gi');
-         highlightedText = highlightedText.replace(kwRegex, (match, p1, offset, string) => {
-            // Only replace if it's not already inside our highlight <span>
-            const upToMatch = string.substring(0, offset);
-            const openSpans = (upToMatch.match(/<span/g) || []).length;
-            const closeSpans = (upToMatch.match(/<\/span>/g) || []).length;
-            if (openSpans > closeSpans) return match; // Inside a tag!
-            
-            return `<span class="highlight-yellow bg-[#facc15]/15 border-l-[3px] border-[#facc15] text-[#facc15] cursor-help px-1 rounded-r-sm font-semibold flag-highlight" data-type="yellow" data-reason="System identified high-risk terminology requiring caution.">${match}</span>`;
-         });
-      });
-    }
-    // Pattern Insights Engine
-    let patternInsight = null;
-    if (flags && flags.length > 0) {
-        const allReasons = flags.map(f => f.explanation.toLowerCase()).join(" ");
-        const hasPenalty = (allReasons.match(/penalty/g) || []).length >= 2;
-        const hasLiability = (allReasons.match(/liability/g) || []).length >= 2;
-        const hasDefault = (allReasons.match(/default/g) || []).length >= 2;
-        
-        let insightText = "";
-        if (hasPenalty && hasLiability) {
-            insightText = "Multiple clauses emphasize penalties and strict liability.";
-        } else if (hasPenalty) {
-            insightText = "Multiple clauses emphasize punitive financial penalties.";
-        } else if (hasLiability) {
-            insightText = "Significant repetition of strict borrower liability clauses detected.";
-        } else if (hasDefault) {
-            insightText = "Multiple clauses define immediate default conditions.";
-        }
-        
-        if (insightText) {
-            patternInsight = (
-               <div className="mb-6 p-4 rounded-xl bg-error/10 border border-error/20 flex gap-3 items-center">
-                  <span className="material-symbols-outlined text-error">warning</span>
-                  <div>
-                     <h4 className="text-sm font-bold text-error uppercase tracking-wider">Pattern Detected</h4>
-                     <p className="text-sm text-error/90">{insightText}</p>
-                  </div>
-               </div>
-            );
-        }
-    }
-
-    // Apply Simple Language logic
-    if (simpleLanguage && translations && translations.length > 0) {
-      translations.forEach(trans => {
-        if (!trans.original) return;
-        const safeWord = trans.original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const prefix = /^[\w]/.test(trans.original) ? '\\b' : '';
-        const suffix = /[\w]$/.test(trans.original) ? '\\b' : '';
-        const regex = new RegExp(`${prefix}(${safeWord})${suffix}`, 'gi');
-        highlightedText = highlightedText.replace(regex, `<strong>${trans.translation}</strong>`);
-      });
-    }
-
-    // FINAL OUTPUT GENERATION (No structural modifications)
-    // Keep document 100% exactly as provided, preserving original order.
-    // Convert newlines to HTML breaks natively.
-    let collapsedHTML = highlightedText.replace(/\n\n/g, '<br/><br/>').replace(/\n/g, '<br/>');
+    const tokens = parseDocument(text, clauses);
 
     return (
       <div>
-        {patternInsight}
         {summaryBlock}
         <h3 className="text-lg font-bold text-on-surface/70 flex items-center gap-2 mb-4">
             <span className="material-symbols-outlined text-sm">article</span>
             Full Dissected Document
         </h3>
+        {clauses.filter(c => c.type !== "neutral").length === 0 && (
+           <div className="mb-6 p-4 rounded-xl bg-tertiary/5 border border-tertiary/20 flex gap-3 items-center">
+              <span className="material-symbols-outlined text-tertiary">check_circle</span>
+              <p className="text-sm text-tertiary/90 font-medium">✓ No significant risks or notable clauses detected in this section</p>
+           </div>
+        )}
         <ProgressiveHighlighter 
           isScanning={isScanning} 
           onComplete={() => setIsScanning(false)}
         >
-          <div 
-            onMouseMove={(e) => {
-               const target = e.target as HTMLElement;
-               const highlighter = target.closest('.flag-highlight') as HTMLElement;
-               const isRevealed = highlighter && getComputedStyle(highlighter).opacity === '1';
-               if (highlighter && isRevealed) {
-                  setTooltip({
-                     visible: true,
-                     x: e.clientX,
-                     y: e.clientY,
-                     type: highlighter.getAttribute('data-type') || 'yellow',
-                     explanation: highlighter.getAttribute('data-reason') || ''
-                  });
-               } else {
-                  setTooltip(prev => ({...prev, visible: false}));
-               }
-            }}
-            onMouseLeave={() => setTooltip(prev => ({...prev, visible: false}))}
-            dangerouslySetInnerHTML={{ __html: collapsedHTML }} 
-            className="leading-relaxed whitespace-pre-wrap interactive-document" 
-          />
+          <div className="leading-relaxed whitespace-pre-wrap interactive-document font-sans text-on-surface/90">
+             {tokens.map((token, i) => {
+                 if (token.type === "highlight") {
+                     let colorClasses = "";
+                     let icon = "verified";
+                     let iconColor = "text-tertiary";
+                     let title = "Favorable";
+
+                     if (token.clause?.level === "red") {
+                         colorClasses = "highlight-red bg-error/10 border-l-[3px] border-error text-error drop-shadow-[0_0_8px_rgba(255,84,73,0.25)]";
+                         icon = "dangerous";
+                         iconColor = "text-error";
+                         title = "High Risk";
+                     } else if (token.clause?.level === "yellow") {
+                         colorClasses = "highlight-yellow bg-[#facc15]/15 border-l-[3px] border-[#facc15] text-[#facc15]";
+                         icon = "warning";
+                         iconColor = "text-[#facc15]";
+                         title = "Warning";
+                     } else if (token.clause?.level === "green") {
+                         colorClasses = "highlight-green bg-tertiary/15 border-l-[3px] border-tertiary text-tertiary";
+                     } else if (token.clause?.level === "gray") {
+                         colorClasses = "highlight-neutral opacity-60"; // Requirement 7: no high-visibility highlight
+                         icon = "info";
+                         iconColor = "text-outline";
+                         title = "Neutral";
+                     }
+
+                     return (
+                         <div className={`relative group inline cursor-help px-1 rounded-sm transition-all ${colorClasses}`} key={i}>
+                             <span className="highlight inline">{token.text}</span>
+                             <div className="tooltip opacity-0 group-hover:opacity-100 absolute top-full left-1/2 -translate-x-1/2 pointer-events-none z-[100] mt-1 w-max max-w-[280px] bg-[#1a1a24] border border-outline-variant/30 rounded-xl shadow-2xl p-4 transition-all duration-300">
+                                 <div className="flex items-center gap-2 mb-2">
+                                     <span className={`material-symbols-outlined text-sm ${iconColor}`}>{icon}</span>
+                                     <span className={`text-xs font-bold uppercase tracking-wider ${iconColor}`}>{title}</span>
+                                 </div>
+                                 <p className="text-sm text-on-surface-variant leading-snug font-normal text-left whitespace-normal">{token.clause?.explanation}</p>
+                                 <div className="mt-2 pt-2 border-t border-white/5 text-[10px] text-outline">Verified AI Insight</div>
+                             </div>
+                         </div>
+                     );
+                 }
+                 return <span key={i}>{token.text}</span>;
+             })}
+          </div>
         </ProgressiveHighlighter>
       </div>
     );
   };
 
   const triggerAnalysis = async (content: string, pdfFile?: File) => {
-    if (!content.trim() && !pdfFile) return;
+    const isPlaceholder = content === "PDF File loaded. Ready to analyze...";
+    if (!pdfFile && (!content.trim() || isPlaceholder)) return;
+
     setAnalyzing(true);
     setAnalyzed(false);
     setErrorMsg("");
-    setSimpleLanguage(false); // reset toggle
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second safety timeout
 
     try {
       const formData = new FormData();
-      if (pdfFile) {
-        formData.append("pdf", pdfFile);
-      } else {
-        formData.append("text", content);
-      }
+      if (pdfFile) formData.append("pdf", pdfFile);
+      else formData.append("text", content);
 
       const response = await fetch('/api/analyze', {
         method: 'POST',
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       const data = await response.json();
+      
+      if (!response.ok) throw new Error(data.error || "Analysis failed.");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Something went wrong.");
-      }
-
-      setScore(data.score ?? 8.0);
-      setScoreBreakdown(data.scoreBreakdown ?? []);
-      setRiskCategory(data.riskCategory ?? "Low Risk");
-      setFlags(data.flags ?? []);
-      setInsights({
-         apr: data.insights?.apr ?? '--',
-         tenure: data.insights?.tenure ?? '--',
-         principal: data.insights?.principal ?? '--'
+      setScore(data.score ?? 5.0);
+      setClauses(data.clauses ?? []);
+      setMetrics(data.metrics ?? { interest_rate: '--', penalty_apr: '--', fees: [], tenure: '--', loan_amount: '--' });
+      setDocumentSummary(data.summary ?? null);
+      
+      const parsedContent = data.parsedText || content;
+      setText(parsedContent);
+      
+      setAnalysis({
+        summary: data.summary,
+        clauses: data.clauses,
+        metrics: data.metrics,
+        score: data.score,
+        parsedText: parsedContent
       });
-      setTranslations(data.simpleLanguage ?? []);
-      setDocumentSummary(data.summary ?? "");
-      
-      if (data.parsedText) {
-          setText(data.parsedText);
-      }
       
       setAnalyzed(true);
-      setIsScanning(true); // Initiate the scan sweep
+      setIsScanning(true);
     } catch (err: any) {
+      clearTimeout(timeoutId);
       console.error(err);
-      setErrorMsg(err.message || "Failed to analyze document.");
-      setAnalyzed(true);
+      if (err.name === 'AbortError') {
+        setErrorMsg("Analysis timed out. The server took too long to respond. Please try with a smaller text chunk.");
+      } else {
+        setErrorMsg(err.message || "Failed to analyze document.");
+      }
+      setAnalyzed(false); // Don't show results grid if we failed
     } finally {
       setAnalyzing(false);
     }
@@ -341,6 +400,13 @@ export default function XRayPage() {
             </div>
           ))}
         </RevealOnScroll>
+
+        {errorMsg && (
+          <RevealOnScroll className="mb-6 p-4 rounded-xl bg-error/10 border border-error/20 flex gap-3 items-center">
+            <span className="material-symbols-outlined text-error">error</span>
+            <p className="text-sm text-error font-medium">{errorMsg}</p>
+          </RevealOnScroll>
+        )}
 
         {/* UPLOAD BOX */}
         <div className="bg-[#131318] p-[1px] shadow-2xl rounded-2xl relative">
@@ -438,24 +504,26 @@ export default function XRayPage() {
              {/* Transparency Score */}
              <RevealOnScroll className="glass-panel rounded-2xl p-6 text-center space-y-4">
                 <h3 className="font-headline text-sm font-medium text-outline uppercase tracking-widest">Transparency Score</h3>
-                <ScoreCounter finalScore={score} ringColor={ringColor} riskCategory={riskCategory} />
+                <ScoreCounter finalScore={score} ringColor={ringColor} riskCategory={documentSummary?.risk_level || "Analyzing..."} />
                 
-                {/* Score Breakdown Widget */}
-                {scoreBreakdown && scoreBreakdown.length > 0 && (
-                  <div className="mt-4 border-t border-white/5 pt-4 text-left">
-                    <h4 className="text-xs font-semibold text-outline-variant mb-2">Score Breakdown</h4>
-                    <div className="space-y-2">
-                       {scoreBreakdown.map((item, idx) => (
-                          <div key={idx} className="flex justify-between items-center text-xs animate-in slide-in-from-right-4 fade-in duration-500 fill-mode-both" style={{animationDelay: `${idx * 150}ms`}}>
-                             <span className="text-on-surface-variant truncate pr-2" title={item.factor}>{item.factor}</span>
-                             <span className={`font-bold ${item.impact < 0 ? 'text-error' : item.impact > 0 ? 'text-tertiary' : 'text-on-surface'}`}>
-                               {item.impact > 0 ? '+' : ''}{item.impact}
-                             </span>
-                          </div>
-                       ))}
-                    </div>
+                {/* Score Breakdown Widget - Minimal implementation since AI returns score directly now */}
+                <div className="mt-4 border-t border-white/5 pt-4 text-left">
+                  <h4 className="text-xs font-semibold text-outline-variant mb-2">Primary Risk Factors</h4>
+                  <div className="space-y-4">
+                     <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-[10px] text-outline uppercase font-bold mb-1">Penalty APR</p>
+                        <p className="text-sm font-bold text-error">{metrics.penalty_apr}</p>
+                     </div>
+                     <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-[10px] text-outline uppercase font-bold mb-1">Detected Fees</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                           {metrics.fees.length > 0 ? metrics.fees.map((f, i) => (
+                              <span key={i} className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold">{f}</span>
+                           )) : <span className="text-xs text-on-surface-variant">No explicit fees found</span>}
+                        </div>
+                     </div>
                   </div>
-                )}
+                </div>
              </RevealOnScroll>
 
              {/* Simple Language Toggle */}
@@ -475,24 +543,6 @@ export default function XRayPage() {
                <p className="text-xs text-on-surface-variant leading-relaxed">Translate legalese into a plain English summary for better understanding.</p>
              </RevealOnScroll>
 
-             {/* Pattern Insights */}
-             {score <= 7 && (
-                <div className="space-y-4">
-                    <h3 className="font-headline text-sm font-semibold flex items-center gap-2 px-2">
-                        <span className="material-symbols-outlined text-yellow-400">lightbulb</span> Pattern Insights
-                    </h3>
-                    <div className="space-y-2">
-                        <div className="glass-panel rounded-xl p-3 border-l-4 border-error/50">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs font-headline font-bold">Watch Out</span>
-                                <span className="material-symbols-outlined text-sm text-error">warning</span>
-                            </div>
-                            <p className="text-[10px] text-on-surface-variant mb-1">Our AI identified punitive clauses or vague terms that could result in unexpected costs.</p>
-                        </div>
-                    </div>
-                </div>
-             )}
-
              {/* Key Terms */}
              <RevealOnScroll className="space-y-3">
                 <MagneticWrapper className="w-full">
@@ -503,48 +553,43 @@ export default function XRayPage() {
                             <span className="text-sm font-headline font-semibold flex-1">Key Terms Breakdown</span>
                         </div>
                         <div className="w-full flex justify-between text-xs p-2 bg-black/20 rounded">
-                            <span className="text-on-surface-variant font-label">APR</span>
-                            <span className="text-tertiary font-bold">{insights.apr}</span>
+                            <span className="text-on-surface-variant font-label">Interest Rate</span>
+                            <span className="text-tertiary font-bold">{metrics.interest_rate}</span>
                         </div>
                         <div className="w-full flex justify-between text-xs p-2 bg-black/20 rounded">
-                            <span className="text-on-surface-variant font-label">Principal</span>
-                            <span className="text-tertiary font-bold">{insights.principal}</span>
+                            <span className="text-on-surface-variant font-label">Penalty APR</span>
+                            <span className="text-error font-bold">{metrics.penalty_apr}</span>
+                        </div>
+                        <div className="w-full flex justify-between text-xs p-2 bg-black/20 rounded">
+                            <span className="text-on-surface-variant font-label">Loan Amount</span>
+                            <span className="text-tertiary font-bold">{metrics.loan_amount}</span>
+                        </div>
+                        <div className="w-full flex justify-between text-xs p-2 bg-black/20 rounded">
+                            <span className="text-on-surface-variant font-label">Total Fees</span>
+                            <span className="text-secondary font-bold">{Array.isArray(metrics.fees) ? metrics.fees.join(', ') : metrics.fees}</span>
                         </div>
                         <div className="w-full flex justify-between text-xs p-2 bg-black/20 rounded">
                             <span className="text-on-surface-variant font-label">Tenure</span>
-                            <span className="text-tertiary font-bold">{insights.tenure}</span>
+                            <span className="text-tertiary font-bold">{metrics.tenure}</span>
                         </div>
                     </div>
                   </div>
                 </MagneticWrapper>
-             </RevealOnScroll>
+                
+                <MagneticWrapper>
+                   <button className="w-full mt-4 flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-secondary" onClick={() => window.location.href = '/'}>
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-xl">logout</span>
+                        <span className="text-sm font-medium">Exit Analysis</span>
+                      </div>
+                    </button>
+                </MagneticWrapper>
+              </RevealOnScroll>
           </aside>
         </section>
       )}
       
-      {/* Global AI Tooltip */}
-      {tooltip.visible && (
-        <div 
-           className="fixed pointer-events-none z-[100] max-w-[280px] bg-[#1a1a24] border border-outline-variant/30 rounded-xl shadow-2xl p-4 transition-all duration-300 ease-out animate-in fade-in slide-in-from-bottom-2 zoom-in-95 delay-100"
-           style={{ left: tooltip.x + 15, top: tooltip.y + 15 }}
-        >
-           <div className="flex items-center gap-2 mb-2">
-             <span className={`material-symbols-outlined text-sm ${tooltip.type === 'red' ? 'text-error' : tooltip.type === 'yellow' ? 'text-[#facc15]' : 'text-tertiary'}`}>
-               {tooltip.type === 'red' ? 'dangerous' : tooltip.type === 'yellow' ? 'warning' : 'verified'}
-             </span>
-             <span className={`text-xs font-bold uppercase tracking-wider ${tooltip.type === 'red' ? 'text-error' : tooltip.type === 'yellow' ? 'text-[#facc15]' : 'text-tertiary'}`}>
-               {tooltip.type === 'red' ? 'High Risk' : tooltip.type === 'yellow' ? 'Warning' : 'Favorable'}
-             </span>
-           </div>
-           <p className="text-sm text-on-surface-variant leading-snug">
-             {tooltip.explanation}
-           </p>
-           <div className="mt-2 pt-2 border-t border-white/5 flex items-center gap-1.5 text-[10px] text-outline">
-              <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
-              AI Flagger
-           </div>
-        </div>
-      )}
+      {/* Global AI Tooltip Removed - Embedded Directly via AST Map */}
     </main>
   );
 }

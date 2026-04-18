@@ -134,11 +134,27 @@ export default function CalculatorPage() {
                   </div>
                 </div>
               </div>
-              <div className="glass-panel p-4 rounded-xl ghost-border flex flex-col gap-2">
-                <span className="text-[10px] font-label text-on-surface/60 uppercase">One-Time Payment</span>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold font-headline">${oneTimePayment}</span>
-                  <button onClick={() => setOneTimePayment(oneTimePayment + 1000)} className="material-symbols-outlined text-sm text-outline hover:text-white">add_circle</button>
+              <div className="glass-panel p-4 rounded-xl ghost-border flex flex-col gap-2 relative group overflow-hidden">
+                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                <span className="text-[10px] font-label text-on-surface/60 uppercase tracking-widest font-bold">One-Time Payment</span>
+                <div className="flex items-center justify-between relative z-10">
+                  <span className="text-sm font-bold font-headline text-primary">${oneTimePayment.toLocaleString()}</span>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => setOneTimePayment(Math.max(0, oneTimePayment - 1000))} 
+                      className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center hover:bg-primary/20 hover:text-white transition-all border border-primary/20 active:scale-95 shadow-lg"
+                      title="Decrease by $1,000"
+                    >
+                      <span className="material-symbols-outlined text-lg">remove</span>
+                    </button>
+                    <button 
+                      onClick={() => setOneTimePayment(oneTimePayment + 1000)} 
+                      className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center hover:bg-primary/30 hover:text-white transition-all border border-primary/30 active:scale-95 shadow-lg"
+                      title="Increase by $1,000"
+                    >
+                      <span className="material-symbols-outlined text-lg">add</span>
+                    </button>
+                  </div>
                 </div>
               </div>
               <button className="glass-panel p-4 rounded-xl border border-secondary/20 flex flex-col gap-2 items-center justify-center group hover:bg-secondary/5 transition-colors"
@@ -219,16 +235,10 @@ export default function CalculatorPage() {
         <div className="flex-1 flex flex-col">
           <div className="flex justify-between items-center mb-8">
             <h3 className="font-headline text-xl font-medium">Cost Over Time</h3>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-secondary"></div>
-                <span className="text-[10px] font-label text-outline uppercase tracking-widest">Principal</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                <span className="text-[10px] font-label text-outline uppercase tracking-widest">Total Cost</span>
-              </div>
-            </div>
+            <Link href="/" className="px-3 py-1.5 glass-panel rounded-lg border border-white/10 flex items-center gap-2 hover:bg-white/5 text-[10px] font-headline font-bold uppercase tracking-widest transition-all text-on-surface-variant">
+               <span className="material-symbols-outlined text-sm">close</span>
+               Exit Tool
+            </Link>
           </div>
 
           <div className="flex-1 relative glass-panel rounded-2xl min-h-[400px] ghost-border p-4 overflow-hidden bg-gradient-to-b from-[#131318]/50 to-[#0e0e13]/50">

@@ -15,12 +15,12 @@ export default function AffordabilityModal({ isOpen, onClose }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#131318]/90 backdrop-blur-md px-4 overflow-y-auto">
-      <div className="w-full max-w-[900px] rounded-[2.5rem] shadow-2xl flex flex-col my-8 border border-white/10 bg-[#131318]/50 overflow-hidden relative">
+    <div className="fixed inset-0 z-[110] bg-[#131318]/90 backdrop-blur-md px-4 py-8 overflow-y-auto flex items-start justify-center">
+      <div className="w-full max-w-[900px] rounded-[2.5rem] shadow-2xl flex flex-col my-auto border border-white/10 bg-[#131318]/50 overflow-hidden relative mt-8 sm:mt-auto">
         <div className="absolute inset-0 bg-white/5 backdrop-blur-xl pointer-events-none"></div>
         <div className="relative z-10 w-full flex flex-col pointer-events-auto">
         {/* Modal Header */}
-        <div className="p-8 pb-4 flex justify-between items-start">
+        <div className="p-8 pb-4 flex justify-between items-start relative">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center">
@@ -30,8 +30,8 @@ export default function AffordabilityModal({ isOpen, onClose }: Props) {
             </div>
             <p className="text-on-surface-variant text-sm ml-[52px]">AI-powered simulation to determine your financial reach and boundaries.</p>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
-            <span className="material-symbols-outlined text-outline">close</span>
+          <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/20 transition-all shadow-sm">
+            <span className="material-symbols-outlined text-white">close</span>
           </button>
         </div>
 

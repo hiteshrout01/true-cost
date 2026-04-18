@@ -49,9 +49,15 @@ export default function ComparisonPage() {
 
   return (
     <main className="pt-28 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto min-h-screen">
-      <header className="mb-12">
-        <h1 className="text-display-lg font-headline font-bold text-5xl tracking-tight mb-2">Compare Financial Products</h1>
-        <p className="text-on-surface-variant max-w-2xl font-body">Input your loan, credit, or mortgage terms to visualize the long-term impact. Our engine calculates the hidden fees that standard bank tools ignore.</p>
+      <header className="mb-12 flex justify-between items-start">
+        <div>
+          <h1 className="text-display-lg font-headline font-bold text-5xl tracking-tight mb-2">Compare Financial Products</h1>
+          <p className="text-on-surface-variant max-w-2xl font-body">Input your loan, credit, or mortgage terms to visualize the long-term impact. Our engine calculates the hidden fees that standard bank tools ignore.</p>
+        </div>
+        <Link href="/" className="px-4 py-2 glass-panel rounded-xl border border-white/10 flex items-center gap-2 hover:bg-white/5 text-[10px] font-headline font-bold uppercase tracking-widest transition-all text-on-surface-variant group">
+           <span className="material-symbols-outlined text-sm group-hover:text-white transition-colors">close</span>
+           Exit tool
+        </Link>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
