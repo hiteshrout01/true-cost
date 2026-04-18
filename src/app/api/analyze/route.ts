@@ -41,22 +41,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No text or invalid PDF provided" }, { status: 400 });
     }
 
-    const documentText = text;
-    const CHUNK_SIZE = 8000; 
+    const documentText = text.trim();
+    const CHUNK_SIZE = 1500; 
     const chunks: { text: string, offset: number }[] = [];
     
     let currentPos = 0;
-    while (currentPos < text.length) {
+    while (currentPos < documentText.length) {
       let endPos = currentPos + CHUNK_SIZE;
-      if (endPos < text.length) {
-        const lastNewline = text.lastIndexOf('\n', endPos);
-        if (lastNewline > currentPos + 4000) {
+      if (endPos < documentText.length) {
+        const lastNewline = documentText.lastIndexOf('\n', endPos);
+        if (lastNewline > currentPos + 500) {
           endPos = lastNewline;
         }
       } else {
-        endPos = text.length;
+        endPos = documentText.length;
       }
-      chunks.push({ text: text.substring(currentPos, endPos), offset: currentPos });
+      chunks.push({ text: documentText.substring(currentPos, endPos), offset: currentPos });
       currentPos = endPos;
     }
 
@@ -69,46 +69,20 @@ export async function POST(request: Request) {
             messages: [
               { 
                 role: "system",
-                content: `Return ONLY valid JSON. Do not include any text, explanation, or markdown. Output must start with { and end with }.
-                
-                You are a high-fidelity financial document analyzer. Provide a balanced analysis: capture all critical risks without being overly strict. 
-
-                STRICT OUTPUT STRUCTURE (JSON):
+                content: `Analyze financial text. Output ONLY valid JSON.
+                Schema:
                 {
-                  "summary": {
-                    "overview": "2-3 factual sentences. No fluff. No generic adjectives.",
-                    "risk_level": "Low | Medium | High",
-                    "key_facts": ["Bullet point with exact numbers ($ or %)"],
-                    "key_risks": ["Specific consequence and trigger condition"]
-                  },
-                  "clauses": [
-                    {
-                      "text": "FULL sentence from document",
-                      "type": "high_risk | warning | favorable",
-                      "reason": "Specific impact summary"
-                    }
-                  ],
-                  "metrics": {
-                    "interest_rate": "...",
-                    "penalty_apr": "...",
-                    "fees": ["List specific $ amounts"],
-                    "loan_amount": "...",
-                    "tenure": "..."
-                  }
+                  "summary": { "overview": "...", "risk_level": "Low|Medium|High", "key_facts": [], "key_risks": [] },
+                  "clauses": [{ "text": "exact sentence", "type": "high_risk|warning|favorable", "reason": "..." }],
+                  "metrics": { "interest_rate": "...", "penalty_apr": "...", "fees": [], "loan_amount": "...", "tenure": "..." }
                 }
-
-                STRICT RULES:
-                1. NO GENERIC PHRASES: Avoid 'substantial', 'significant'.
-                2. ALWAYS INCLUDE NUMBERS: Facts must have values (e.g. 26% APR, $95 fee).
-                3. NO HALLUCINATIONS: Only what is explicitly in the text.
-                4. FULL SENTENCES: 'text' MUST be a complete sentence.
-                5. CLASSIFICATION: high_risk (APR spikes, default), warning (late fees), favorable (0% terms).`
+                Rule: Fact-based, include numbers, no fluff.`
               },
-              { role: "user", content: `Analyze this text chunk: ${chunk}` }
+              { role: "user", content: `Chunk: ${chunk}` }
             ],
             model: "gpt-4o-mini",
             temperature: 0,
-            max_tokens: 4096,
+            max_tokens: 1000,
             response_format: { type: "json_object" }
           });
 
