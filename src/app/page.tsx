@@ -84,7 +84,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-8 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div className="flex flex-col items-center">
-              <span className="font-headline text-5xl md:text-7xl font-extrabold text-secondary drop-shadow-[0_0_15px_rgba(76,215,246,0.4)] mb-4">$1.2B+</span>
+              <span className="font-headline text-5xl md:text-7xl font-extrabold text-secondary drop-shadow-[0_0_15px_rgba(76,215,246,0.4)] mb-4">₹1.2B+</span>
               <span className="font-label text-sm uppercase tracking-widest text-outline">Hidden Fees Exposed</span>
               <div className="w-12 h-1 bg-secondary/30 mt-6 rounded-full"></div>
             </div>
@@ -94,7 +94,7 @@ export default function Dashboard() {
               <div className="w-12 h-1 bg-primary/30 mt-6 rounded-full"></div>
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-headline text-5xl md:text-7xl font-extrabold text-tertiary drop-shadow-[0_0_15px_rgba(78,222,163,0.4)] mb-4">$4.2k</span>
+              <span className="font-headline text-5xl md:text-7xl font-extrabold text-tertiary drop-shadow-[0_0_15px_rgba(78,222,163,0.4)] mb-4">₹4.2k</span>
               <span className="font-label text-sm uppercase tracking-widest text-outline">Average Savings Found</span>
               <div className="w-12 h-1 bg-tertiary/30 mt-6 rounded-full"></div>
             </div>

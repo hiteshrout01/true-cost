@@ -45,7 +45,7 @@ export default function ComparisonPage() {
   const worst = sorted[sorted.length - 1];
   const savings = worst.cost - best.cost;
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+  const formatCurrency = (val: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
   return (
     <main className="pt-28 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto min-h-screen">
@@ -220,17 +220,17 @@ export default function ComparisonPage() {
             <tbody className="divide-y divide-white/5">
               <tr className="hover:bg-white/5 transition-colors">
                 <td className="p-6 font-body text-on-surface-variant text-sm">Origination Fee</td>
-                <td className="p-6 font-headline">$1,200</td>
-                <td className="p-6 font-headline bg-tertiary/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">$850</td>
-                <td className="p-6 font-headline">$1,100</td>
+                <td className="p-6 font-headline">₹1,200</td>
+                <td className="p-6 font-headline bg-tertiary/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">₹850</td>
+                <td className="p-6 font-headline">₹1,100</td>
                 <td className="p-6 font-headline text-tertiary text-sm font-bold">-29.1%</td>
               </tr>
               <tr className="hover:bg-white/5 transition-colors">
                 <td className="p-6 font-body text-on-surface-variant text-sm">Annual Maintenance</td>
-                <td className="p-6 font-headline bg-tertiary/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">$0</td>
-                <td className="p-6 font-headline">$150</td>
-                <td className="p-6 font-headline">$200</td>
-                <td className="p-6 font-headline text-error text-sm font-bold">+$150</td>
+                <td className="p-6 font-headline bg-tertiary/10 text-tertiary shadow-[inset_0_0_15px_rgba(78,222,163,0.1)]">₹0</td>
+                <td className="p-6 font-headline">₹150</td>
+                <td className="p-6 font-headline">₹200</td>
+                <td className="p-6 font-headline text-error text-sm font-bold">+₹150</td>
               </tr>
               <tr className="hover:bg-white/5 transition-colors">
                 <td className="p-6 font-body text-on-surface-variant text-sm">Early Pre-payment</td>

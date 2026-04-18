@@ -100,7 +100,7 @@ export default function AffordabilityModal({ isOpen, onClose }: Props) {
               <h4 className="text-on-surface-variant text-xs font-headline uppercase tracking-wider font-bold mb-6">Simulation Result</h4>
               <div className="space-y-1">
                 <span className="text-xs font-headline font-bold text-secondary uppercase tracking-[0.2em]">Safe Loan Amount</span>
-                <div className="text-5xl font-headline font-extrabold text-white tracking-tighter">$642,500</div>
+                <div className="text-5xl font-headline font-extrabold text-white tracking-tighter">₹642,500</div>
               </div>
             </div>
 
@@ -124,7 +124,7 @@ export default function AffordabilityModal({ isOpen, onClose }: Props) {
                   </div>
                   <span className="text-xs font-bold text-white uppercase tracking-widest">Monthly Affordability</span>
                 </div>
-                <div className="text-3xl font-headline font-bold text-white mb-1">$2,550 <span className="text-sm text-on-surface-variant font-medium">/mo</span></div>
+                <div className="text-3xl font-headline font-bold text-white mb-1">₹2,550 <span className="text-sm text-on-surface-variant font-medium">/mo</span></div>
                 <p className="text-[10px] text-on-surface-variant leading-tight">Recommended monthly installment for balanced cash flow.</p>
               </div>
 
@@ -133,7 +133,7 @@ export default function AffordabilityModal({ isOpen, onClose }: Props) {
                   <span className="material-symbols-outlined text-secondary text-lg">insights</span>
                   <span className="text-xs font-bold text-secondary uppercase tracking-widest">Growth Forecast</span>
                 </div>
-                <p className="text-xs text-on-surface-variant leading-relaxed">At current appreciation rates, this asset could reach <span className="text-white font-bold">$780k</span> value by 2027.</p>
+                <p className="text-xs text-on-surface-variant leading-relaxed">At current appreciation rates, this asset could reach <span className="text-white font-bold">₹780k</span> value by 2027.</p>
               </div>
             </div>
           </div>

@@ -113,7 +113,7 @@ export default function ReportPage() {
                   <div className="p-6 rounded-2xl border border-white/5 bg-surface-container-high flex flex-col justify-between">
                     <h4 className="text-on-surface-variant text-xs font-headline uppercase tracking-wider font-bold">Total Exposure</h4>
                     <div>
-                      <div className="text-2xl font-headline font-bold text-white">$42.8M</div>
+                      <div className="text-2xl font-headline font-bold text-white">₹42.8M</div>
                       <div className="text-tertiary text-xs">+12.4% vs last period</div>
                     </div>
                   </div>

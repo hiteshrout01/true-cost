@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import MouseFollower from "@/components/MouseFollower";
+import CursorGlow from "@/components/CursorGlow";
 import DashboardFAB from "@/components/DashboardFAB";
 import "./globals.css";
 
@@ -23,6 +24,7 @@ export default function RootLayout({
       </head>
       <body className="bg-transparent text-on-background min-h-screen flex flex-col antialiased relative">
         <AnimatedBackground />
+        <CursorGlow />
         <MouseFollower />
         <Navbar />
         {children}

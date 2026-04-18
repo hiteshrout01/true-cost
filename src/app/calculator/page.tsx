@@ -26,7 +26,7 @@ export default function CalculatorPage() {
 
     if (realityShock) {
       n += 2;
-      extraCosts += 100; // 2 missed payments * $50
+      extraCosts += 100; // 2 missed payments * ₹50
     }
 
     const mRate = (rRate / 12) / 100;
@@ -72,11 +72,11 @@ export default function CalculatorPage() {
       totalInterest: tInterest > 0 ? tInterest : 0,
       totalPayable: tPayable > 0 ? tPayable : p,
       chartData: data,
-      riskScore: (actualEmi / 5000) * 100 // Abstract risk factor based on avg $5k income
+      riskScore: (actualEmi / 5000) * 100 // Abstract risk factor based on avg ₹5k income
     };
   }, [principal, rate, tenure, processingFee, realityShock, payExtra, oneTimePayment, stressTest]);
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+  const formatCurrency = (val: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
   return (
     <main className={`pt-[70px] min-h-screen w-full max-w-[1440px] mx-auto flex flex-col md:flex-row ${stressTest ? 'stress-test-active' : ''}`}>
@@ -196,7 +196,7 @@ export default function CalculatorPage() {
                   <span className="material-symbols-outlined text-error mt-0.5">report</span>
                   <div>
                     <div className="text-sm font-bold text-error">Critical: Debt-to-Income Breach</div>
-                    <p className="text-xs text-on-surface-variant mt-1">Projected EMI exceeds 40% of assumed $5k/mo average income.</p>
+                    <p className="text-xs text-on-surface-variant mt-1">Projected EMI exceeds 40% of assumed ₹5k/mo average income.</p>
                   </div>
                 </div>
               )}
