@@ -15,8 +15,8 @@ export default function ProgressiveHighlighter({
   const [scanProgress, setScanProgress] = useState(0); // 0 to 100 percentage
   const [pulses, setPulses] = useState<{id: number, x: number, y: number}[]>([]);
   const scanDuration = 2500; // 2.5 seconds
-  const requestRef = useRef<number>();
-  const startTimeRef = useRef<number>();
+  const requestRef = useRef<number | undefined>(undefined);
+  const startTimeRef = useRef<number | undefined>(undefined);
   const pulseCount = useRef(0);
 
   useEffect(() => {
