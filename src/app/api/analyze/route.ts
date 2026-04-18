@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     const documentText = text.trim();
-    const CHUNK_SIZE = 1500; 
+    const CHUNK_SIZE = 1000; 
     const chunks: { text: string, offset: number }[] = [];
     
     let currentPos = 0;
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       let endPos = currentPos + CHUNK_SIZE;
       if (endPos < documentText.length) {
         const lastNewline = documentText.lastIndexOf('\n', endPos);
-        if (lastNewline > currentPos + 500) {
+        if (lastNewline > currentPos + 200) {
           endPos = lastNewline;
         }
       } else {
@@ -69,20 +69,13 @@ export async function POST(request: Request) {
             messages: [
               { 
                 role: "system",
-                content: `Analyze financial text. Output ONLY valid JSON.
-                Schema:
-                {
-                  "summary": { "overview": "...", "risk_level": "Low|Medium|High", "key_facts": [], "key_risks": [] },
-                  "clauses": [{ "text": "exact sentence", "type": "high_risk|warning|favorable", "reason": "..." }],
-                  "metrics": { "interest_rate": "...", "penalty_apr": "...", "fees": [], "loan_amount": "...", "tenure": "..." }
-                }
-                Rule: Fact-based, include numbers, no fluff.`
+                content: `JSON only. Schema: { "summary": { "overview": "", "risk_level": "Low|Medium|High", "key_facts": [], "key_risks": [] }, "clauses": [{ "text": "", "type": "high_risk|warning|favorable", "reason": "" }], "metrics": { "interest_rate": "", "penalty_apr": "", "fees": [], "loan_amount": "", "tenure": "" } }`
               },
               { role: "user", content: `Chunk: ${chunk}` }
             ],
             model: "gpt-4o-mini",
             temperature: 0,
-            max_tokens: 1000,
+            max_tokens: 600,
             response_format: { type: "json_object" }
           });
 
